@@ -1,5 +1,31 @@
 # ActivityWatch Geliştirme Sürüm Kayıtları
 
+## v0.13.2-firebase-qt-integration (2025-07-09 15:41:26)
+
+### ✨ Yeni Özellikler
+- **aw-qt Firebase Entegrasyonu Tamamlandı**
+  - Qt-based tray icon ve module manager'ın Firebase entegrasyonu
+  - Cloud-based module discovery ve real-time synchronization
+  - Cross-device configuration sync ve status management
+  - Firebase authentication dialog ve user management
+  - Hybrid local/cloud module management sistemi
+
+### 📚 Dokümantasyon
+- `mds/firebase-qt-integration.md` - aw-qt Firebase entegrasyonu (1400+ satır)
+  - FirebaseQtClient ve PyQt6 integration
+  - Real-time module status synchronization across devices
+  - Firebase-hosted Web UI integration
+  - Authentication & credential management
+  - Offline support ve local cache management
+  - Migration strategy: local aw-qt → Firebase
+
+### 🔧 Teknik İyileştirmeler
+- Qt signals/slots sistemi ile Firebase real-time listeners
+- Cross-device conflict resolution strategies
+- Secure credential management (keyring integration)
+- Performance optimization: offline queue, cache management
+- Network state monitoring ve automatic reconnection
+
 ## v0.13.1-firebase-notifications (2025-07-09 15:33:00)
 
 ### ✨ Yeni Özellikler
