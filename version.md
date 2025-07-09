@@ -1,5 +1,34 @@
 # ActivityWatch Geliştirme Sürüm Kayıtları
 
+## v0.13.3-firebase-server-integration (2025-07-09 15:48:33)
+
+### ✨ Yeni Özellikler
+- **aw-server Firebase Entegrasyonu Tamamlandı**
+  - Flask-based aw-server'ın Firebase Cloud Functions'a tam adaptasyonu
+  - Scalable cloud architecture ve otomatik ölçeklendirme
+  - Firebase Authentication ile güvenli kullanıcı yönetimi
+  - Real-time capabilities ve Firestore listeners
+  - Multi-device support ve cross-device synchronization
+
+### 📚 Dokümantasyon
+- `mds/firebase-server-integration.md` - aw-server Firebase entegrasyonu (1800+ satır)
+  - Cloud Functions architecture (API endpoints, triggers, scheduled functions)
+  - Authentication & Authorization (Firebase Auth, multi-device limits)
+  - REST API Cloud Functions (buckets, events, heartbeat, query engine)
+  - Real-time features (Firestore triggers, WebSocket alternative)
+  - Performance optimization (multi-level caching, database indexing)
+  - WebUI Firebase Hosting integration
+  - Migration strategy: local aw-server → Firebase Cloud Functions
+  - Monitoring & analytics (Firebase Analytics, performance tracking)
+
+### 🔧 Teknik İyileştirmeler
+- Cloud Functions mimarisi: auto-scaling, serverless
+- Firestore database optimization: composite indexes, batch operations
+- Query2 engine Firebase portability
+- Multi-level caching strategy (memory + Firestore)
+- CI/CD pipeline Firebase deployment
+- Cost optimization pay-per-use model
+
 ## v0.13.2-firebase-qt-integration (2025-07-09 15:41:26)
 
 ### ✨ Yeni Özellikler
