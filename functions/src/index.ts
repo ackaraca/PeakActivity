@@ -1,6 +1,10 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
 import { Request, Response } from "express";
 import { linearRegression, linearRegressionLine, mean, standardDeviation } from "simple-statistics";
 
@@ -285,7 +289,6 @@ const globToRegex = (glob: string) => {
   return new RegExp(`^${pattern}$`, 'i');
 };
 
-// Admin SDK'yı başlat
 admin.initializeApp();
 
 const calendarSyncService = new CalendarSyncService();
