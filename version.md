@@ -1,5 +1,24 @@
 # PeakActivity - Versiyon Geçmişi
 
+## v0.13.8-webapp-improvements-part3 (2025-07-11 04:38:15)
+
+### ✨ Yeni Özellikler
+- **Web Arayüzü - Proje Tamamlama Tahmini Görselleştirmesi:**
+    - Proje tamamlama tahmini API'sinden (`ProjectPredictionAPI`) veri çeken ve görselleştiren (`ProjectPrediction.vue`) bileşeni geliştirildi.
+    - Kullanıcının belirli bir proje ID'si girerek ilgili projenin tahmini tamamlama tarihi, güven seviyesi, mevcut ilerleme ve kalan efor gibi metriklerini görüntülemesi sağlandı.
+    - Benzer projelerden alınan içgörüleri listeleyen bir bölüm eklendi.
+    - `main.js` dosyasına `/project-prediction` rotası eklendi ve `Header.vue` dosyasına bu sayfaya yönlendiren bir navigasyon bağlantısı (`icon(name="chart-bar")`) eklendi.
+
+### 🔧 Teknik İyileştirmeler
+- Frontend bileşenleri, Firebase Cloud Functions üzerindeki ilgili API uç noktalarını (`predictProjectCompletion`) kullanarak veri çekme işlemleri için entegre edildi.
+- Kullanıcı arayüzünde yükleme durumları ve hata mesajları yönetimi iyileştirildi.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **2. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
+
+---
+
 ## v0.13.7-webapp-improvements-part2 (2025-07-11 04:30:47)
 
 ### ✨ Yeni Özellikler
