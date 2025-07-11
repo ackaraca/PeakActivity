@@ -1,9 +1,7 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
+admin.initializeApp(functions.config().firebase);
 
 import { Request, Response } from "express";
 import { linearRegression, linearRegressionLine, mean, standardDeviation } from "simple-statistics";
