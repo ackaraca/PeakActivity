@@ -41,6 +41,10 @@ interface GoalDocument {
 }
 ```
 
+**Veri Yapısı Optimizasyonu Notları:**
+- `goals` alt koleksiyonu kullanıcıya özel hedefler için uygun. Genel hedefler sorgulanacaksa Collection Group indekslemesi gerekebilir.
+- İlerleme takibi (`progress`) alanlarının güncellemelerinde atomik işlemler (transactions) kullanılmalı.
+
 ### 4. users/{userId}/insights/{insightId} 
 
 ### 5. users/{userId}/automation_rules/{ruleId}
@@ -121,7 +125,10 @@ interface AutomationRuleDocument {
   updated_at: number;             // Last update timestamp
   version: number;                // Document version
 }
-``` 
+```
+
+**Veri Yapısı Optimizasyonu Notları:**
+- Tetikleyici ve eylem türlerine göre sıkça sorgulama yapılacaksa denormalize alanlar veya alt koleksiyonlar düşünülebilir.
 
 ### 6. users/{userId}/projects/{projectId}
 ```typescript
@@ -157,7 +164,11 @@ interface ProjectDocument {
   updated_at: number;                 // Last update timestamp
   version: number;                    // Document version
 }
-``` 
+```
+
+**Veri Yapısı Optimizasyonu Notları:**
+- `associated_goals` ve `associated_tasks` gibi referans listeleri çok büyürse, ayrı bir alt koleksiyon (örn. `projects/{projectId}/goals`) düşünülebilir.
+- `activity_breakdown` gibi haritalar üzerinde karmaşık sorgular gerekirse, bu verilerin de denormalize edilmesi veya ayrı bir alt koleksiyonda tutulması faydalı olabilir.
 
 ### 7. users/{userId}/reports/{reportId}
 ```typescript
@@ -206,6 +217,10 @@ interface ReportDocument {
 }
 ```
 
+**Veri Yapısı Optimizasyonu Notları:**
+- `generated_data` alanı potansiyel olarak çok büyük olabileceği için, eğer büyük raporlar bekleniyorsa Cloud Storage'da depolayıp Firestore belgesinde sadece URL referansı tutmak daha verimli olabilir.
+- Rapor metriklerine göre sıkça sorgulama yapılacaksa, `metrics` array yerine denormalize alanlar veya alt koleksiyonlar düşünülebilir.
+
 ### 8. users/{userId}/custom_events/{eventId}
 ```typescript
 interface CustomEventDocument {
@@ -232,6 +247,9 @@ interface CustomEventDocument {
 }
 ``` 
 
+**Veri Yapısı Optimizasyonu Notları:**
+- `details` objesindeki alanlara göre sıkça sorgulama yapılacaksa (örn. belirli bir uygulama adı için tüm olaylar), bu alanları üst düzeye denormalize etmek daha iyi indeksleme ve sorgu performansı sağlayabilir.
+
 ### 9. users/{userId}/notifications/{notificationId}
 ```typescript
 interface NotificationDocument {
@@ -246,7 +264,10 @@ interface NotificationDocument {
   related_entity_id?: string;         // ID of related entity (goal, insight, etc.)
   version: number;                    // Document version
 }
-``` 
+```
+
+**Veri Yapısı Optimizasyonu Notları:**
+- Kullanıcı bildirimleri için uygun yapı. Okunmamış bildirimler için sorgulama performansı önemlidir, `read` alanı için indeksleme sağlanmalı.
 
 ### 10. users/{userId}/focus_modes/{modeId}
 ```typescript

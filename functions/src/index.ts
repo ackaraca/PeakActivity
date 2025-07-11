@@ -28,10 +28,52 @@ import { generateInsight, listInsights, getInsight, deleteInsight } from "./api/
 import { createNotification, getNotification, updateNotification, deleteNotification, listNotifications } from "./api/notification-api";
 import { createFocusMode, getFocusMode, updateFocusMode, deleteFocusMode, listFocusModes, setActiveFocusMode } from "./api/focus-mode-api";
 
-// Global settings
+// Global settings for all functions in this file
 setGlobalOptions({
-  // ... existing code ...
+  region: "us-central1", // Fonksiyonların dağıtılacağı bölge
+  timeoutSeconds: 60, // Varsayılan zaman aşımı süresi
+  memory: "256MB", // Varsayılan bellek boyutu
+  concurrency: 50, // Bir instance tarafından aynı anda işlenebilecek istek sayısı
+  minInstances: 1, // Soğuk başlangıçları azaltmak için minimum instance sayısı
 });
+
+// Fonksiyon çağrısı optimizasyonu: İstemci tarafında gereksiz çağrıları en aza indirin ve fonksiyon içinde erken çıkışlar/veri filtreleme kullanın.
+
+// Firebase Machine Learning (ML) Entegrasyonu için potansiyel entegrasyon noktaları:
+// Özel ML modellerinin dağıtımı ve kullanımı genellikle Firebase ML SDK'ları aracılığıyla yapılır.
+// Fonksiyonlar, model çıkarımını (inference) tetiklemek veya model çıktılarını işlemek için kullanılabilir.
+// Örnek: Kullanıcı davranışı tahmini için bir Cloud Function, eğitilmiş bir ML modelini çağırabilir.
+// Örnek: Cihaz içi ML Kit yetenekleri (metin tanıma, görüntü işleme) doğrudan istemci uygulamalarında (Tauri/Mobil) entegre edilebilir.
+
+// Üretken Yapay Zeka ile Akıllı Öneriler için potansiyel entegrasyon noktaları:
+// Cloud Functions, Google'ın Gemini API veya Vertex AI gibi üretken AI hizmetleriyle etkileşime girmek için bir aracı görevi görebilir.
+// Örnek: Kullanıcının aktivite verilerine dayanarak e-posta veya rapor taslakları oluşturma.
+// Örnek: Sık sorulan sorulara dinamik yanıtlar veya bağlama duyarlı tavsiyeler sunma.
+
+// Doğal Dil İşleme (NLP) Yetenekleri için potansiyel entegrasyon noktaları:
+// Cloud Functions, metin analizi (duygu, konu, varlık tanıma) veya sohbet botu entegrasyonu için harici NLP API'leri ile etkileşime girebilir.
+// Örnek: Kullanıcı geri bildirimlerinin duygu analizi veya aktivite açıklamalarından konu tespiti.
+// Örnek: Kullanıcı sorularını yanıtlayan veya görev tamamlamaya yardımcı olan bir sohbet botu entegrasyonu.
+
+// Zaman Serisi Analizi ve Tahminleme için potansiyel entegrasyon noktaları:
+// Cloud Functions, zaman serisi verilerini işlemek ve tahmin modellerini (LSTM, Transformer vb.) çalıştırmak için kullanılabilir.
+// Örnek: Gelecekteki aktivite desenlerini veya odaklanma seviyelerini tahmin etme.
+// Örnek: Aktivite verilerindeki ani düşüşler veya artışlar gibi anomali ve değişim noktalarını tespit etme.
+
+// Harici Servis Entegrasyonları için potansiyel entegrasyon noktaları:
+// Cloud Functions, Google Calendar, Trello, Jira gibi harici takvim ve görev yönetimi araçlarıyla entegrasyon için kullanılabilir.
+// Örnek: Kullanıcının Google Takvim etkinliklerini senkronize etme, boş zamanlarını tespit etme veya otomatik etkinlikler oluşturma.
+// Örnek: Trello/Jira'daki görev durumlarını senkronize etme, proje ilerlemesini takip etme veya görev tamamlama tahminleri yapma.
+
+// İletişim Araçları Entegrasyonları için potansiyel entegrasyon noktaları:
+// Cloud Functions, Slack, Microsoft Teams veya e-posta servisleri gibi harici iletişim araçlarıyla entegrasyon için kullanılabilir.
+// Örnek: Slack/Teams'e bildirim gönderme, mesajlaşma analizi yapma veya sanal toplantı katılımını izleme.
+// Örnek: Gelen kutusu analizi yapma, önemli e-postaları vurgulama veya e-posta yazma asistanı sağlama.
+
+// Sağlık ve Zindelik Uygulamaları Entegrasyonları için potansiyel entegrasyon noktaları:
+// Cloud Functions, uyku takip cihazları (örn. Fitbit, Oura) veya meditasyon uygulamaları gibi harici sağlık ve zindelik uygulamalarıyla entegrasyon için kullanılabilir.
+// Örnek: Uyku kalitesi verilerini senkronize etme, enerji seviyeleriyle korelasyon kurma veya uyku düzeni önerileri sunma.
+// Örnek: Meditasyon süresi takibi, zihinsel durumla korelasyon veya stres seviyesi analizi yapma.
 
 interface Event {
   timestamp_start: string;

@@ -17,38 +17,59 @@ service cloud.firestore {
     }
     
     // Kullanıcı koleksiyonu kuralları
+    // Query bazlı güvenlik: 'list' operasyonları, kullanıcının yalnızca kendi userId'sine ait belgeleri getirmesini sağlar.
     match /users/{userId} {
       // Kullanıcılar kendi profillerini okuyabilir ve güncelleyebilir
-      allow read: if isAuthenticated() && isUserOwned(userId);
-      allow write: if isAuthenticated() && isUserOwned(userId);
+      allow read, write: if isAuthenticated() && isUserOwned(userId);
       
       // Alt koleksiyonlar için kurallar
       match /activities/{activityId} {
-        allow read, write: if isAuthenticated() && isUserOwned(userId);
+        allow get, list: if isAuthenticated() && isUserOwned(userId);
+        allow create: if isAuthenticated() && isUserOwned(userId);
+        allow update: if isAuthenticated() && isUserOwned(userId);
+        allow delete: if isAuthenticated() && isUserOwned(userId);
       }
       
       match /goals/{goalId} {
-        allow read, write: if isAuthenticated() && isUserOwned(userId);
+        allow get, list: if isAuthenticated() && isUserOwned(userId);
+        allow create: if isAuthenticated() && isUserOwned(userId);
+        allow update: if isAuthenticated() && isUserOwned(userId);
+        allow delete: if isAuthenticated() && isUserOwned(userId);
       }
       
       match /insights/{insightId} {
-        allow read, write: if isAuthenticated() && isUserOwned(userId);
+        allow get, list: if isAuthenticated() && isUserOwned(userId);
+        allow create: if isAuthenticated() && isUserOwned(userId);
+        allow update: if isAuthenticated() && isUserOwned(userId);
+        allow delete: if isAuthenticated() && isUserOwned(userId);
       }
       
       match /daily_reports/{reportId} {
-        allow read, write: if isAuthenticated() && isUserOwned(userId);
+        allow get, list: if isAuthenticated() && isUserOwned(userId);
+        allow create: if isAuthenticated() && isUserOwned(userId);
+        allow update: if isAuthenticated() && isUserOwned(userId);
+        allow delete: if isAuthenticated() && isUserOwned(userId);
       }
       
       match /weekly_reports/{reportId} {
-        allow read, write: if isAuthenticated() && isUserOwned(userId);
+        allow get, list: if isAuthenticated() && isUserOwned(userId);
+        allow create: if isAuthenticated() && isUserOwned(userId);
+        allow update: if isAuthenticated() && isUserOwned(userId);
+        allow delete: if isAuthenticated() && isUserOwned(userId);
       }
       
       match /automation_rules/{ruleId} {
-        allow read, write: if isAuthenticated() && isUserOwned(userId);
+        allow get, list: if isAuthenticated() && isUserOwned(userId);
+        allow create: if isAuthenticated() && isUserOwned(userId);
+        allow update: if isAuthenticated() && isUserOwned(userId);
+        allow delete: if isAuthenticated() && isUserOwned(userId);
       }
       
       match /settings/{settingId} {
-        allow read, write: if isAuthenticated() && isUserOwned(userId);
+        allow get, list: if isAuthenticated() && isUserOwned(userId);
+        allow create: if isAuthenticated() && isUserOwned(userId);
+        allow update: if isAuthenticated() && isUserOwned(userId);
+        allow delete: if isAuthenticated() && isUserOwned(userId);
       }
     }
     

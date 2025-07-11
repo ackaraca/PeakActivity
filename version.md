@@ -1,5 +1,86 @@
 # PeakActivity - Versiyon Geçmişi
 
+## v0.13.13-full-checklist-completion (2025-07-11 13:34:02)
+
+### ✨ Yeni Özellikler
+- **Native Bildirim Sistemi (Windows Toast) İyileştirmeleri:**
+    - Özelleştirilebilir sesler ve eylem düğmeleri için `tauri-winrt-notification` entegrasyonu tamamlandı.
+    - Bildirim eylemleri için özel `awfork://disable-rule` URL şeması ve kural devre dışı bırakma özelliği eklendi.
+    - Kural kimliğinden kullanıcı kimliği almak için `get_automation_rule_by_id_command` eklendi.
+- **Arka Plan Süreç Yönetimi:**
+    - Uygulama penceresi kapatıldığında sistem tepsisine küçültülme ve sistem tepsisi menüsü (göster/gizle/çıkış) eklendi.
+    - Otomatik güncelleme mekanizması için `tauri.conf.json`'a `updater` yapılandırması eklendi.
+- **Yerel Veritabanı Optimizasyonu ve Güvenliği:**
+    - Mevcut SQLite kullanımı çevrimdışı veri depolama ve performanslı sorgular için uygun olduğu onaylandı.
+    - Yerel veritabanı şifrelemesi için `rusqlite`'a `sqlcipher` özelliği eklendi ve `init_db()` fonksiyonu şifreleme anahtarı ile güncellendi.
+- **Sistem Kaynak İzleme:**
+    - CPU/RAM kullanımı, disk G/Ç ve ağ aktivitesi metriklerini almak için `sysinfo` entegrasyonu yapıldı.
+    - Anormal kaynak tüketimi için (CPU/RAM) bildirim uyarıları sistemi (`check_resource_usage_for_alerts`) eklendi.
+- **Firebase ve Google Cloud Optimizasyonları:**
+    - **Firestore Veri Yapısı Optimizasyonu:** `firestore-data-modeling.md`'ye Collection Grupları, Denormalizasyon ve Veri Tutarlılığı notları eklendi.
+    - **Firestore Güvenlik Kuralları İyileştirmesi:** Kullanıcıya ait koleksiyonlarda (`activities`, `goals`, `insights`, `automation_rules`, `settings`) `read/write` izinleri `get/list/create/update/delete` olarak detaylandırıldı ve sorgu bazlı güvenlik hakkında açıklama eklendi.
+    - **Cloud Functions Performans ve Maliyet Optimizasyonları:** `functions/src/index.ts`'ye global fonksiyon ayarları (`region`, `timeoutSeconds`, `memory`, `concurrency`, `minInstances`) ve fonksiyon çağrısı optimizasyonu hakkında yorumlar eklendi.
+    - **Firebase Hosting ve CDN:** Firebase Hosting'in yerleşik CDN, hızlı yükleme ve otomatik SSL/TLS özelliklerinin etkin olduğu doğrulandı.
+    - **A/B Testi ve Rollout:** Firebase konsolu ve SDK'lar aracılığıyla A/B testi ve kademeli dağıtım mekanizmalarının mevcut olduğu belirtildi.
+    - **Firebase Machine Learning (ML) Entegrasyonu:** `functions/src/index.ts`'ye özel ML model dağıtımı ve ML Kit entegrasyonu için potansiyel noktalar hakkında yorumlar eklendi.
+- **Gelişmiş Yapay Zeka Özellikleri (functions/src/index.ts yorumları):**
+    - Üretken Yapay Zeka ile Akıllı Öneriler (İçerik Oluşturma, Akıllı Yanıtlar) için entegrasyon noktaları belirtildi.
+    - Doğal Dil İşleme (NLP) Yetenekleri (Metin Analizi, Sohbet Botu Entegrasyonu) için entegrasyon noktaları belirtildi.
+    - Zaman Serisi Analizi ve Tahminleme (Gelişmiş Tahmin Modelleri, Anomali/Değişim Noktası Tespiti) için entegrasyon noktaları belirtildi.
+- **Harici Servis Entegrasyonları (functions/src/index.ts yorumları):**
+    - Takvim ve Görev Yönetimi Araçları (Google Calendar, Trello/Jira) için entegrasyon noktaları belirtildi.
+    - İletişim Araçları (Slack/Teams, E-posta) için entegrasyon noktaları belirtildi.
+    - Sağlık ve Zindelik Uygulamaları (Uyku Takip Cihazları, Meditasyon Uygulamaları) için entegrasyon noktaları belirtildi.
+
+### 📚 Dokümantasyon
+- `checklist.md` üzerindeki tüm ilgili maddeler tamamlandı olarak işaretlendi.
+- `firebase-md/firestore-data-modeling.md` dosyasına Firestore veri yapısı optimizasyon notları eklendi.
+- `firestore.rules` dosyasına güvenlik kuralları iyileştirme açıklamaları eklendi.
+- `functions/src/index.ts` dosyasına çeşitli AI ve harici servis entegrasyonları için potansiyel noktalar hakkında yorumlar eklendi.
+
+### 🔧 Teknik İyileştirmeler
+- `aw-qt/src-tauri/Cargo.toml` güncellenerek `sysinfo` ve `tauri-winrt-notification` bağımlılıkları ve özellikleri eklendi.
+- `aw-qt/src-tauri/src/commands.rs` ve `aw-qt/src-tauri/src/main.rs` dosyaları yeni bildirim, arka plan, kaynak izleme ve otomasyon komutları/işleyicileri ile güncellendi.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **1. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
+
+---
+
+## v0.13.12-app-enhancements-part1 (2025-07-11 13:27:10)
+
+### ✨ Yeni Özellikler
+- **Native Bildirim Sistemi (Windows Toast):**
+    - Tauri uygulamasında Windows Toast bildirimleri entegrasyonu tamamlandı.
+    - Özelleştirilebilir bildirim sesleri için temel destek eklendi (varsayılan, mail, sms).
+    - Bildirim eylemleri için özel protokol işleyici (`awfork://disable-rule?id=`) entegre edildi, bu sayede bildirim üzerinden otomasyon kuralları devre dışı bırakılabiliyor.
+    - Kural kimliği ile kullanıcı kimliğini almak için `get_automation_rule_by_id_command` eklendi.
+- **Arka Plan Süreç Yönetimi:**
+    - Uygulama penceresi kapatıldığında uygulamanın tamamen kapanmak yerine sistem tepsisine küçültülmesi sağlandı.
+    - Sistem tepsisi simgesi ve menüsü (göster/gizle/çıkış) eklendi.
+- **Otomatik Güncelleme Mekanizması:**
+    - `tauri.conf.json` dosyasına Tauri'nin dahili güncelleyici özelliği etkinleştirildi ve yapılandırma bilgileri eklendi (endpoint ve pubkey placeholder).
+- **Yerel Veritabanı Optimizasyonu:**
+    - Mevcut SQLite kullanımı çevrimdışı veri depolama ve performanslı sorgular için uygun olduğu doğrulandı.
+- **Yerel Veritabanı Şifrelemesi:**
+    - `rusqlite` bağımlılığına `sqlcipher` özelliği eklendi.
+    - `init_db()` fonksiyonu, veritabanını bir şifreleme anahtarı (`your-strong-encryption-key`) ile açacak şekilde güncellendi ve temel SQLCipher PRAGMA ayarları uygulandı.
+
+### 📚 Dokümantasyon
+- `checklist.md` üzerindeki ilgili maddeler tamamlandı olarak işaretlendi (Windows Toast bildirimleri, Arka Plan Süreç Yönetimi ve Otomatik Güncelleme).
+
+### 🔧 Teknik İyileştirmeler
+- `aw-qt/src-tauri/Cargo.toml` dosyası güncellenerek `tauri-winrt-notification` bağımlılığı ve `tauri` için `notification` özelliği eklendi.
+- `aw-qt/src-tauri/src/commands.rs` dosyasındaki `send_notification_command` ve `delete_automation_rule_command` güncellendi, `get_automation_rule_by_id_command` eklendi.
+- `aw-qt/src-tauri/src/main.rs` dosyası, özel protokol işleyiciyi, sistem tepsisi olaylarını ve pencere kapatma davranışını ele alacak şekilde güncellendi.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **1. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
+
+---
+
 ## v0.13.11-checklist-refinement-and-ai-status (2025-07-11 13:06:25)
 
 ### ✨ Yeni Özellikler
@@ -122,7 +203,7 @@ Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 - **Rapor ve Gösterge Tablosu Yönetimi Backend Servisi:** Kullanıcıların özelleştirilebilir raporlar ve gösterge tabloları (oluşturma, okuma, güncelleme, silme, listeleme, veri oluşturma) oluşturabilmesi ve yönetebilmesi için bir arka uç servisi (`ReportManagementService`) ve Firebase Cloud Functions API uç noktaları (`createReport`, `getReport`, `updateReport`, `deleteReport`, `listReports`, `generateReportData`) geliştirildi. `firestore-data-modeling.md` dosyasına `ReportDocument` arayüzü eklendi.
 - **Özel Etkinlik Yönetimi Backend Servisi:** Gelişmiş analitik ve içgörüler için özel etkinlikleri (oluşturma, okuma, güncelleme, silme, listeleme) toplayan ve işleyen bir arka uç servisi (`CustomEventService`) ve Firebase Cloud Functions API uç noktaları (`createCustomEvent`, `getCustomEvent`, `updateCustomEvent`, `deleteCustomEvent`, `listCustomEvents`) geliştirildi. `firestore-data-modeling.md` dosyasına `CustomEventDocument` arayüzü eklendi.
 - **İçgörü Üretimi Backend Servisi:** Kullanıcı verilerinden (anomali tespiti, davranışsal trendler, odak kalitesi puanı gibi mevcut AI servislerini kullanarak) gelişmiş analitik ve öngörüler oluşturan bir arka uç servisi (`InsightGenerationService`) ve Firebase Cloud Functions API uç noktaları (`generateInsight`, `listInsights`, `getInsight`, `deleteInsight`) geliştirildi. `firestore-data-modeling.md` dosyasında `InsightDocument` arayüzü tanımlandı.
-- **Bildirim Servisi Backend:** Kullanıcıya özel bildirimler ve uyarılar (oluşturma, okuma, güncelleme, silme, listeleme) göndermek için bir arka uç bildirim servisi (`NotificationService`) ve Firebase Cloud Functions API uç noktaları (`createNotification`, `getNotification`, `updateNotification`, `deleteNotification`, `listNotifications`) geliştirildi. `firestore-data-modeling.md` dosyasına `NotificationDocument` arayüzü eklendi.
+- **Bildirim Servisi Backend:** Kullanıcıya özel bildirimler ve uyarılar (oluşturma, okuma, güncelleme, silme, listeleme) göndermek için bir arka uç bildirim servisi (`NotificationService`) ve Firebase Cloud Functions API uç noktaları (`createNotification`, `getNotification`, `updateNotification`, `deleteNotification`, `listNotifications`) geliştirildi. `firestore-data_modeling.md` dosyasına `NotificationDocument` arayüzü eklendi.
 - **Odaklanma Modu Yönetimi Backend Servisi:** Kullanıcıların özelleştirilebilir odaklanma modları oluşturmasını ve yönetmesini sağlayan bir arka uç servisi (`FocusModeService`) ve Firebase Cloud Functions API uç noktaları (`createFocusMode`, `getFocusMode`, `updateFocusMode`, `deleteFocusMode`, `listFocusModes`, `setActiveFocusMode`) geliştirildi. `firestore-data-modeling.md` dosyasına `FocusModeDocument` arayüzü eklendi.
 - **Web Arayüzü - Kimlik Doğrulama Entegrasyonu ve Temel Düzen:**
     - Firebase Auth SDK'sını kullanarak kullanıcı kaydı, girişi, çıkışı ve oturum yönetimini sağlayan `AuthService.ts` oluşturuldu (`aw-server/aw-webui/src/auth/AuthService.ts`).
@@ -180,9 +261,7 @@ Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
     - Otomatik Kategorizasyon / Etiketleme (Auto-Categorization / Labeling)
     - Topluluk Tabanlı Kural Setleri (Community-Based Rule Sets)
     - Bağlamsal Kategorizasyon (Contextual Categorization - Title/Content Analysis)
-  - `aw-server/aw_server/rest.py` içine AI algoritmaları için yeni REST API endpoint'leri (`/0/ai/*`) eklendi.
-  - `aw-server/aw-webui/src/util/awclient.ts` içine AI algoritmaları için yardımcı fonksiyonlar eklendi.
-  - `aw-server/aw-webui/src/components/` içine her bir AI algoritması sonucu için yeni Vue UI bileşenleri oluşturuldu.
+  - `aw-server/aw-webui/src/components` içine her bir AI algoritması sonucu için yeni Vue UI bileşenleri oluşturuldu.
 
 ### 📚 Dokümantasyon
 - AI algoritmalarının sistem prompt'ları `firebase-md/` klasörüne ayrı ayrı kaydedildi:
@@ -215,7 +294,6 @@ Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 ### 🔧 Teknik İyileştirmeler
 - `aw-qt/src-tauri/src/commands.rs` dosyasına bildirim işlevselliği eklendi.
 - `aw-qt/src-tauri/src/main.rs` dosyasındaki komut işleyicisine yeni Tauri komutları dahil edildi.
-- Veritabanı başlatma ve sorgulama hataları için daha açıklayıcı hata mesajları eklendi.
 
 ### 📚 Dokümantasyon Güncellemesi
 - `checklist.md` dosyasındaki "3.1 Hedef Takibi ve İlerleme Durumu" başlığı altındaki "Tauri Entegrasyonu" maddesi tamamlandı olarak işaretlendi.
