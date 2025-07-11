@@ -9,6 +9,13 @@ import { setGlobalOptions } from 'firebase-functions/v2/options';
 
 import * as goalApi from './api/goal-api';
 import * as firestoreTriggers from './triggers/firestore-triggers';
+import { detectAnomalies } from './api/anomaly-detection-api';
+import { autoCategorize } from './api/auto-categorization-api';
+import { analyzeBehavioralPatterns } from './api/behavioral-analysis-api';
+import { matchCommunityRule } from './api/community-rules-api';
+import { categorizeContext } from './api/contextual-categorization-api';
+import { calculateFocusQualityScore } from './api/focus-quality-score-api';
+import { createAutomationRule, getAutomationRule, getAllAutomationRules, updateAutomationRule, deleteAutomationRule } from './api/automation-rule-api';
 
 // Global settings
 setGlobalOptions({
@@ -219,88 +226,7 @@ export const helloWorld = functions.https.onRequest((request, response) => {
   response.send("Hello from Firebase!");
 });
 
-export const calculateFocusQualityScore = functions.https.onRequest(async (request: Request, response: Response) => {
-  if (request.method !== "POST") {
-    return response.status(405).send("Method Not Allowed");
-  }
-
-  const { events, user_tz } = request.body as FocusQualityScoreInput;
-
-  if (!events || !Array.isArray(events)) {
-    return response.status(400).send("Invalid input: 'events' array is required.");
-  }
-
-  const sessionScores: SessionScore[] = [];
-  let totalScore = 0;
-  let validSessionsCount = 0;
-
-  for (const event of events) {
-    if (event.is_afk || event.duration_sec < 300) { // Non-AFK time >= 5 min
-      continue;
-    }
-
-    let score = 100;
-    let distractions = 0;
-    let contextSwitchPenalty = 0;
-
-    // -1 point per context switch (window/app change) after the first.
-    if (event.window_change_count > 1) {
-      contextSwitchPenalty = (event.window_change_count - 1);
-      score -= contextSwitchPenalty;
-    }
-
-    // -0.5 point per minute where input_frequency < 0.1 (passive consumption).
-    if (event.input_frequency < 0.1) {
-      const passiveConsumptionPenalty = (event.duration_sec / 60) * 0.5;
-      score -= passiveConsumptionPenalty;
-      distractions += Math.floor(passiveConsumptionPenalty); // Approximate distractions
-    }
-
-    // -10 points if any social-media category app is used in the session.
-    if (event.category === "social") {
-      score -= 10;
-      distractions += 1;
-    }
-
-    // +5 points for sessions between 09:00-12:00 local time, -5 for sessions between 00:00-06:00.
-    try {
-      const startTime = new Date(event.timestamp_start);
-      // Adjust for user's timezone if necessary (this might require a more robust timezone library like moment-timezone)
-      // For simplicity, directly using UTC for now.
-      const localHour = startTime.getHours(); // This will be UTC hour, needs proper timezone handling
-      if (localHour >= 9 && localHour < 12) {
-        score += 5;
-      } else if (localHour >= 0 && localHour < 6) {
-        score -= 5;
-      }
-    } catch (e) {
-      functions.logger.error("Failed to parse timestamp for timezone adjustment", e);
-    }
-
-    // Clamp scores to the range 0-100.
-    score = Math.max(0, Math.min(100, score));
-
-    sessionScores.push({
-      session_id: `${event.timestamp_start}-${event.timestamp_end}`,
-      focus_quality_score: Math.round(score),
-      distractions: Math.round(distractions),
-      context_switch_penalty: Math.round(contextSwitchPenalty),
-    });
-
-    totalScore += score;
-    validSessionsCount++;
-  }
-
-  const dailyAverage = validSessionsCount > 0 ? totalScore / validSessionsCount : null;
-
-  const output: FocusQualityScoreOutput = {
-    session_scores: sessionScores,
-    daily_average: dailyAverage !== null ? Math.round(dailyAverage) : null,
-    explanations: "Detaylı açıklama ve ana faktörler buraya gelecek.",
-  };
-
-  return response.status(200).json(output);
-});
+export { calculateFocusQualityScore };
 
 export const analyzeBehavioralTrends = functions.https.onRequest(async (request: Request, response: Response) => {
   if (request.method !== "POST") {
@@ -382,52 +308,12 @@ export const analyzeBehavioralTrends = functions.https.onRequest(async (request:
   return response.status(200).json(output);
 });
 
-export const detectAnomalies = functions.https.onRequest(async (request: Request, response: Response) => {
-  if (request.method !== "POST") {
-    return response.status(405).send("Method Not Allowed");
-  }
-
-  const { daily_totals } = request.body as AnomalyDetectionInput;
-
-  if (!daily_totals || !Array.isArray(daily_totals) || daily_totals.length < 2) {
-    return response.status(400).send("Invalid input: 'daily_totals' array is required and must contain at least 2 entries.");
-  }
-
-  const totals = daily_totals.map(d => d.total_seconds);
-
-  const baselineMean = mean(totals);
-  const baselineStdDev = standardDeviation(totals);
-
-  const anomalies: Anomaly[] = [];
-
-  for (const day of daily_totals) {
-    const zScore = (day.total_seconds - baselineMean) / baselineStdDev;
-
-    if (Math.abs(zScore) >= 2) {
-      const deviationPercent = ((day.total_seconds - baselineMean) / baselineMean) * 100;
-      anomalies.push({
-        date: day.date,
-        z_score: parseFloat(zScore.toFixed(2)),
-        deviation_percent: parseFloat(deviationPercent.toFixed(2)),
-      });
-    }
-  }
-
-  // Sort anomalies by absolute z-score, limit to top 10.
-  anomalies.sort((a, b) => Math.abs(b.z_score) - Math.abs(a.z_score));
-  const topAnomalies = anomalies.slice(0, 10);
-
-  const explanation = "Günlük aktivite sürelerindeki önemli sapmalar belirlenmiştir."; // Türkçe açıklama
-
-  const output: AnomalyDetectionOutput = {
-    anomalies: topAnomalies,
-    baseline_mean: parseFloat(baselineMean.toFixed(2)),
-    baseline_stddev: parseFloat(baselineStdDev.toFixed(2)),
-    explanation,
-  };
-
-  return response.status(200).json(output);
-});
+export { detectAnomalies };
+export { autoCategorize };
+export { analyzeBehavioralPatterns };
+export { matchCommunityRule };
+export { categorizeContext };
+export { createAutomationRule, getAutomationRule, getAllAutomationRules, updateAutomationRule, deleteAutomationRule };
 
 export const autoCategorize = functions.https.onRequest(async (request: Request, response: Response) => {
   if (request.method !== "POST") {

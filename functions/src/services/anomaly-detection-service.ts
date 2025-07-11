@@ -1,0 +1,178 @@
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+
+// Geçici veri: Gerçek uygulamada Firestore'dan veya başka bir kaynaktan alınacak
+const MOCK_DAILY_TOTALS = [
+  { "date": "2023-01-01", "total_seconds": 28000 },
+  { "date": "2023-01-02", "total_seconds": 29000 },
+  { "date": "2023-01-03", "total_seconds": 27000 },
+  { "date": "2023-01-04", "total_seconds": 35000 },
+  { "date": "2023-01-05", "total_seconds": 26000 },
+  { "date": "2023-01-06", "total_seconds": 28500 },
+  { "date": "2023-01-07", "total_seconds": 27500 },
+  { "date": "2023-01-08", "total_seconds": 29500 },
+  { "date": "2023-01-09", "total_seconds": 26500 },
+  { "date": "2023-01-10", "total_seconds": 28000 },
+  { "date": "2023-01-11", "total_seconds": 29000 },
+  { "date": "2023-01-12", "total_seconds": 27000 },
+  { "date": "2023-01-13", "total_seconds": 35000 },
+  { "date": "2023-01-14", "total_seconds": 26000 },
+  { "date": "2023-01-15", "total_seconds": 28500 },
+  { "date": "2023-01-16", "total_seconds": 27500 },
+  { "date": "2023-01-17", "total_seconds": 29500 },
+  { "date": "2023-01-18", "total_seconds": 26500 },
+  { "date": "2023-01-19", "total_seconds": 28000 },
+  { "date": "2023-01-20", "total_seconds": 29000 },
+  { "date": "2023-01-21", "total_seconds": 27000 },
+  { "date": "2023-01-22", "total_seconds": 35000 },
+  { "date": "2023-01-23", "total_seconds": 26000 },
+  { "date": "2023-01-24", "total_seconds": 28500 },
+  { "date": "2023-01-25", "total_seconds": 27500 },
+  { "date": "2023-01-26", "total_seconds": 29500 },
+  { "date": "2023-01-27", "total_seconds": 26500 },
+  { "date": "2023-01-28", "total_seconds": 28000 },
+  { "date": "2023-01-29", "total_seconds": 29000 },
+  { "date": "2023-01-30", "total_seconds": 27000 },
+  { "date": "2023-01-31", "total_seconds": 35000 },
+  { "date": "2023-02-01", "total_seconds": 26000 },
+  { "date": "2023-02-02", "total_seconds": 28500 },
+  { "date": "2023-02-03", "total_seconds": 27500 },
+  { "date": "2023-02-04", "total_seconds": 29500 },
+  { "date": "2023-02-05", "total_seconds": 26500 },
+  { "date": "2023-02-06", "total_seconds": 28000 },
+  { "date": "2023-02-07", "total_seconds": 29000 },
+  { "date": "2023-02-08", "total_seconds": 27000 },
+  { "date": "2023-02-09", "total_seconds": 35000 },
+  { "date": "2023-02-10", "total_seconds": 26000 },
+  { "date": "2023-02-11", "total_seconds": 28500 },
+  { "date": "2023-02-12", "total_seconds": 27500 },
+  { "date": "2023-02-13", "total_seconds": 29500 },
+  { "date": "2023-02-14", "total_seconds": 26500 },
+  { "date": "2023-02-15", "total_seconds": 28000 },
+  { "date": "2023-02-16", "total_seconds": 29000 },
+  { "date": "2023-02-17", "total_seconds": 27000 },
+  { "date": "2023-02-18", "total_seconds": 35000 },
+  { "date": "2023-02-19", "total_seconds": 26000 },
+  { "date": "2023-02-20", "total_seconds": 28500 },
+  { "date": "2023-02-21", "total_seconds": 27500 },
+  { "date": "2023-02-22", "total_seconds": 29500 },
+  { "date": "2023-02-23", "total_seconds": 26500 },
+  { "date": "2023-02-24", "total_seconds": 28000 },
+  { "date": "2023-02-25", "total_seconds": 29000 },
+  { "date": "2023-02-26", "total_seconds": 27000 },
+  { "date": "2023-02-27", "total_seconds": 35000 },
+  { "date": "2023-02-28", "total_seconds": 26000 }
+];
+
+
+interface DailyTotal {
+  date: string;
+  total_seconds: number;
+}
+
+interface AnomalyResult {
+  date: string;
+  z_score: number;
+  deviation_percent: number;
+}
+
+interface AnomalyOutput {
+  anomalies: AnomalyResult[];
+  baseline_mean: number;
+  baseline_stddev: number;
+  explanation: string;
+}
+
+export class AnomalyDetectionService {
+  /**
+   * Calculates the mean of an array of numbers.
+   * @param data The array of numbers.
+   * @returns The mean.
+   */
+  private calculateMean(data: number[]): number {
+    const sum = data.reduce((acc, val) => acc + val, 0);
+    return sum / data.length;
+  }
+
+  /**
+   * Calculates the standard deviation of an array of numbers.
+   * @param data The array of numbers.
+   * @param mean The pre-calculated mean of the data.
+   * @returns The standard deviation.
+   */
+  private calculateStandardDeviation(data: number[], mean: number): number {
+    const squaredDifferences = data.map(val => Math.pow(val - mean, 2));
+    const sumOfSquaredDifferences = squaredDifferences.reduce((acc, val) => acc + val, 0);
+    return Math.sqrt(sumOfSquaredDifferences / data.length);
+  }
+
+  /**
+   * Detects anomalies in daily activity totals based on z-score.
+   * @param dailyTotals An array of daily activity totals.
+   * @returns An AnomalyOutput object containing detected anomalies and baseline statistics.
+   */
+  public detectAnomalies(dailyTotals: DailyTotal[]): AnomalyOutput {
+    const totalSecondsValues = dailyTotals.map(d => d.total_seconds);
+
+    if (totalSecondsValues.length < 2) {
+      return {
+        anomalies: [],
+        baseline_mean: 0,
+        baseline_stddev: 0,
+        explanation: "Anomali tespiti için yeterli veri yok. En az 2 günlük veri gereklidir."
+      };
+    }
+
+    const mean = this.calculateMean(totalSecondsValues);
+    const stdDev = this.calculateStandardDeviation(totalSecondsValues, mean);
+
+    const anomalies: AnomalyResult[] = [];
+
+    for (const dailyTotal of dailyTotals) {
+      if (stdDev === 0) {
+        // Handle case where standard deviation is zero (all values are the same)
+        if (dailyTotal.total_seconds !== mean) {
+          // If a value is different from the mean, it's an anomaly
+          anomalies.push({
+            date: dailyTotal.date,
+            z_score: dailyTotal.total_seconds > mean ? Infinity : -Infinity,
+            deviation_percent: ((dailyTotal.total_seconds - mean) / mean) * 100
+          });
+        }
+        continue;
+      }
+
+      const zScore = (dailyTotal.total_seconds - mean) / stdDev;
+      if (Math.abs(zScore) >= 2) {
+        anomalies.push({
+          date: dailyTotal.date,
+          z_score: parseFloat(zScore.toFixed(2)),
+          deviation_percent: parseFloat(((dailyTotal.total_seconds - mean) / mean * 100).toFixed(2))
+        });
+      }
+    }
+
+    anomalies.sort((a, b) => Math.abs(b.z_score) - Math.abs(a.z_score));
+
+    return {
+      anomalies: anomalies.slice(0, 10),
+      baseline_mean: parseFloat(mean.toFixed(2)),
+      baseline_stddev: parseFloat(stdDev.toFixed(2)),
+      explanation: anomalies.length > 0 ? "Belirlenen aktivite verilerinde anormal günler tespit edildi." : "Anormal aktivite verisi tespit edilmedi."
+    };
+  }
+
+  /**
+   * Fetches mock daily totals for anomaly detection. In a real application,
+   * this would fetch data from Firestore.
+   * @returns A Promise that resolves to an array of DailyTotal objects.
+   */
+  public async getDailyTotals(): Promise<DailyTotal[]> {
+    // Simulate fetching data from a database
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(MOCK_DAILY_TOTALS);
+      }, 500); // Simulate network delay
+    });
+  }
+} 

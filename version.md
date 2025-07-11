@@ -1,81 +1,85 @@
 # PeakActivity - Versiyon Geçmişi
 
-## v0.1.0 - 2025-07-09 00:10:34
+## v0.13.5-automation-engine-init (2025-07-11 04:00:39)
 
-### 🎉 İlk Kurulum (Project Bootstrap)
+### ✨ Yeni Özellikler
+- **Akıllı Kurallar ve Otomasyon Motoru - Temel Entegrasyon Başlatıldı (Aşama 3.2)**
+  - Firestore'da `automation_rules` koleksiyon şeması tasarlandı (`firebase-md/firestore-data-modeling.md`). Bu şema, tetikleyici ve eylem türlerini, parametrelerini ve kural öncelik/cooldown mekanizmasını içerir.
+  - Otomasyon kurallarını yönetecek `AutomationRuleService` (`functions/src/services/automation-rule-service.ts`) oluşturuldu. Bu servis, CRUD işlemleri ve kural tetikleme/değerlendirme mantığını içerir.
+  - `AutomationRuleService`'i kullanan Firebase Cloud Functions (API uç noktaları) (`functions/src/api/automation-rule-api.ts`) oluşturuldu (`createAutomationRule`, `getAutomationRule`, `getAllAutomationRules`, `updateAutomationRule`, `deleteAutomationRule`).
+  - Yeni otomasyon kuralı API'leri `functions/src/index.ts` dosyasına entegre edildi.
+  - Tauri uygulamasında (Rust) kural yürütücüsü için temel yapılar oluşturuldu:
+    - `aw-qt/src-tauri/src/commands.rs` dosyasına `AutomationRule` yapıları ve Firebase Cloud Functions ile iletişim kuran CRUD komutları eklendi. Ayrıca temel kural değerlendirme ve eylem yürütme mantığı (cooldown kontrolü ve bildirim gösterme gibi) simüle edildi.
+    - `aw-qt/src-tauri/src/main.rs` dosyası, yeni eklenen otomasyon kuralı komutlarını `invoke_handler!` makrosuna dahil etmek üzere güncellendi.
 
-#### ✅ Tamamlanan İşler
-- **Proje yapısı oluşturuldu**
-  - Ana dizin yapısı kuruldu
-  - `.cursor/rules/` dizini ve geliştirme kuralları
-  - README.md ve version.md dosyaları
+### 📚 Dokümantasyon
+- `checklist.md` dosyası, "Aşama 3.2 Akıllı Kurallar ve Otomasyon Motoru (IFTTT Tarzı)" başlığı altındaki ilk adımların ve daha önce tamamlanan tüm AI algoritmaları entegrasyonlarının durumu yansıtacak şekilde güncellendi.
 
-#### 📋 Oluşturulan Kural Dosyaları
-- `general-coding-standards.mdc` - Genel kodlama standartları ve isimlendirme kuralları
-- `tauri-development.mdc` - Tauri özel geliştirme kuralları ve IPC standartları
-- `vuejs-typescript.mdc` - Vue.js 3 Composition API ve TypeScript kuralları
-- `firebase-development.mdc` - Firebase Cloud Functions ve güvenlik kuralları
-- `firestore-data-modeling.mdc` - Kapsamlı Firestore veri modeli ve şemaları
+### 🔧 Teknik İyileştirmeler
+- `functions` dizini altındaki Firebase Cloud Functions'a yönelik AI algoritmaları (Anomali Tespiti, Otomatik Kategorizasyon, Davranışsal Analiz, Topluluk Kuralları, Bağlamsal Kategorizasyon, Odak Kalitesi Skoru) başarıyla entegre edildi ve API uç noktaları olarak kullanıma açıldı.
 
-#### 🏗️ Mimari Kararlar
-- **Hibrit Mimari**: Yerel veri toplama + Firebase bulut işleme
-- **Frontend Stack**: Tauri (Desktop) + Vue.js 3 (Web)
-- **Backend Stack**: Firebase Cloud Functions (Python)
-- **Database**: Cloud Firestore
-- **Authentication**: Firebase Auth
-
-#### 📊 Teknoloji Yığını Belirlendi
-- **Desktop**: Tauri + Vue.js 3 + TypeScript
-- **Web Panel**: Vue.js 3 + Composition API + TypeScript
-- **Cloud**: Firebase ecosystem (Functions, Firestore, Auth, Hosting)
-- **Development**: Cursor IDE + ESLint + Prettier + Vitest
-
-#### 🎯 Sonraki Adımlar (v0.2.0 için)
-- Firebase projesinin oluşturulması
-- Desktop app temel yapısının kurulması
-- Web panel başlangıç geliştirmesi
-- Cloud Functions temel yapısının oluşturulması
-
-#### 📈 Hedef Özellikler
-- **Faz 1**: Temel aktivite takibi ve raporlama
-- **Faz 2**: AI destekli içgörüler ve öneriler
-- **Faz 3**: Otomasyon kuralları ve akıllı bildirimler
-- **Faz 4**: Takım özellikleri ve işbirliği araçları
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **1. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 
 ---
 
-### 📝 Notlar
-- Proje ActivityWatch'dan esinlenerek tamamen yeniden tasarlandı
-- SaaS modeli için abonelik katmanları planlandı (Free, Premium, Pro)
-- Gizlilik odaklı yaklaşım benimsenip yerel işleme öncelendirildi
-- Türkçe açıklamalar + İngilizce kod standartları uygulandı
+## v0.13.4-ai-integration-completed (2025-07-11 03:22:32)
 
-### 🔄 Geliştirme Döngüsü
-Bu versiyon 3-prompt geliştirme döngüsünün **1. prompt'u** ile tamamlandı.
-Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
+### ✨ Yeni Özellikler
+- **Firebase Fonksiyonları Ortamı Kurulumu ve Yapay Zeka Algoritmaları Entegrasyonu Tamamlandı**
+  - Firebase Functions dizini oluşturuldu ve Node.js/TypeScript projesi başlatıldı.
+  - Gerekli Firebase bağımlılıkları (`firebase-functions`, `firebase-admin`, `typescript`) yüklendi ve TypeScript yapılandırıldı.
+  - Her bir yapay zeka algoritması için Firebase Fonksiyonları (`index.ts` içinde) geliştirildi:
+    - Odaklanma Kalitesi Skoru (Focus Quality Score)
+    - Davranışsal Desenler ve Trend Analizi (Behavioral Patterns and Trend Analysis)
+    - Anomali Tespiti (Anomaly Detection)
+    - Otomatik Kategorizasyon / Etiketleme (Auto-Categorization / Labeling)
+    - Topluluk Tabanlı Kural Setleri (Community-Based Rule Sets)
+    - Bağlamsal Kategorizasyon (Contextual Categorization - Title/Content Analysis)
+  - `aw-server/aw_server/rest.py` içine AI algoritmaları için yeni REST API endpoint'leri (`/0/ai/*`) eklendi.
+  - `aw-server/aw-webui/src/util/awclient.ts` içine AI algoritmaları için yardımcı fonksiyonlar eklendi.
+  - `aw-server/aw-webui/src/components/` içine her bir AI algoritması sonucu için yeni Vue UI bileşenleri oluşturuldu.
 
-## v0.1.1 - 2025-07-09 14:32:07
+### 📚 Dokümantasyon
+- AI algoritmalarının sistem prompt'ları `firebase-md/` klasörüne ayrı ayrı kaydedildi:
+  - `firebase-md/focus-quality-score.md`
+  - `firebase-md/behavioral-patterns-trend-analysis.md`
+  - `firebase-md/anomaly-detection.md`
+  - `firebase-md/auto-categorization-labeling.md`
+  - `firebase-md/community-based-rule-sets.md`
+  - `firebase-md/contextual-categorization.md`
+- Eski `mds` dizini ve `diagram.svg` dosyaları kaldırıldı.
+- Yeni `aw-component-relationships.txt`, `checklist.md`, `firestore.rules`, `storage.rules` dosyaları eklendi.
 
-### 🚀 İlk Analiz ve Yapılandırma
-
-#### ✅ Tamamlanan İşler
-- **Proje Dosyaları ve Yapısı Analizi**
-  - Tüm ana dizin `.md` dosyaları (README.md, CONTRIBUTING.md, LICENSE.txt, SECURITY.md, CITATION.cff, ai-implementation-notes.md, ai-features-plan.md, version-peakactivity.md, README-peakactivity.md) okundu ve içeriği analiz edildi.
-  - Proje mimarisi ve AI özellik planları detaylıca incelendi.
-- **Git Submodule Entegrasyonu**
-  - `git submodule update --init --recursive` komutuyla `aw-*` dizinleri altındaki tüm submodule'lar başarıyla indirildi. Bu, kod analizi için gerekli ortamı sağladı.
-- **`aw-client` Modül Analizi**
-  - `aw-client/aw_client/` dizini altındaki Python kod dosyaları (`queries.py`, `singleinstance.py`, `client.py`, `config.py`, `py.typed`, `classes.py`, `cli.py`, `__init__.py`, `__main__.py`) ayrıntılı olarak incelendi.
-  - `aw-client` modülünün temel işlevleri (API etkileşimi, olay yönetimi, heartbeat mekanizması, kova yönetimi, veri sorgulama, ayarlar yönetimi, tekil örnekleme ve CLI araçları) çıkarıldı.
-- **Proje Özeti Raporu Oluşturuldu**
-  - `project_summary.md` adında yeni bir Markdown dosyası oluşturuldu. Bu dosya, projenin genel mimarisi, ana bileşenleri, mevcut ve planlanan AI özellikleri, güvenlik ve gizlilik yaklaşımları, performans metrikleri, geliştirme kuralları ve özellik katmanlarını detaylı bir şekilde özetliyor.
-  - Sonraki adımlar için somut öneriler sunuldu.
+### 🔧 Teknik İyileştirmeler
+- `aw-client`, `aw-core`, `aw-notify`, `aw-qt` ve `aw-server` alt modülleri AI entegrasyonu için güncellendi ve kendi depolarında kaydedildi.
 
 #### 🔄 Geliştirme Döngüsü
-Bu versiyon 3-prompt geliştirme döngüsünün **2. prompt'u** ile tamamlandı.
+Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
 Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
 
-# ActivityWatch Geliştirme Sürüm Kayıtları
+## v0.13.4-tauri-integration (2025-07-11 03:45:55)
+
+### ✨ Yeni Özellikler
+- **aw-qt Tauri Entegrasyonu Geliştirildi**
+  - Hedef yönetimi için Tauri komutları (`create_goal_command`, `get_all_goals_command`, `update_goal_command`, `delete_goal_command`) güncellendi ve genişletildi.
+  - Tauri bildirim API'si entegre edildi.
+  - Hedef oluşturma ve güncelleme işlemleri için sistem bildirimleri eklendi.
+  - Genel bildirim göndermek için yeni `send_notification_command` tanımlandı.
+  - SQLite veritabanı ile yerel hedef verisi yönetimi sağlandı.
+
+### 🔧 Teknik İyileştirmeler
+- `aw-qt/src-tauri/src/commands.rs` dosyasına bildirim işlevselliği eklendi.
+- `aw-qt/src-tauri/src/main.rs` dosyasındaki komut işleyicisine yeni Tauri komutları dahil edildi.
+- Veritabanı başlatma ve sorgulama hataları için daha açıklayıcı hata mesajları eklendi.
+
+### 📚 Dokümantasyon Güncellemesi
+- `checklist.md` dosyasındaki "3.1 Hedef Takibi ve İlerleme Durumu" başlığı altındaki "Tauri Entegrasyonu" maddesi tamamlandı olarak işaretlendi.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
 
 ## v0.13.3-firebase-server-integration (2025-07-09 15:48:33)
 
@@ -228,60 +232,3 @@ Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 **Toplam Dosya:** 2 MD dokümanı  
 **Satır Sayısı:** ~1200+ satır kapsamlı dokümantasyon  
 **Kapsam:** Core integration analysis, Firebase architecture design, performance optimization 
-
-## v0.13.4-ai-integration-completed (2025-07-11 03:22:32)
-
-### ✨ Yeni Özellikler
-- **Firebase Fonksiyonları Ortamı Kurulumu ve Yapay Zeka Algoritmaları Entegrasyonu Tamamlandı**
-  - Firebase Functions dizini oluşturuldu ve Node.js/TypeScript projesi başlatıldı.
-  - Gerekli Firebase bağımlılıkları (`firebase-functions`, `firebase-admin`, `typescript`) yüklendi ve TypeScript yapılandırıldı.
-  - Her bir yapay zeka algoritması için Firebase Fonksiyonları (`index.ts` içinde) geliştirildi:
-    - Odaklanma Kalitesi Skoru (Focus Quality Score)
-    - Davranışsal Desenler ve Trend Analizi (Behavioral Patterns and Trend Analysis)
-    - Anomali Tespiti (Anomaly Detection)
-    - Otomatik Kategorizasyon / Etiketleme (Auto-Categorization / Labeling)
-    - Topluluk Tabanlı Kural Setleri (Community-Based Rule Sets)
-    - Bağlamsal Kategorizasyon (Contextual Categorization - Title/Content Analysis)
-  - `aw-server/aw_server/rest.py` içine AI algoritmaları için yeni REST API endpoint'leri (`/0/ai/*`) eklendi.
-  - `aw-server/aw-webui/src/util/awclient.ts` içine AI algoritmaları için yardımcı fonksiyonlar eklendi.
-  - `aw-server/aw-webui/src/components/` içine her bir AI algoritması sonucu için yeni Vue UI bileşenleri oluşturuldu.
-
-### 📚 Dokümantasyon
-- AI algoritmalarının sistem prompt'ları `firebase-md/` klasörüne ayrı ayrı kaydedildi:
-  - `firebase-md/focus-quality-score.md`
-  - `firebase-md/behavioral-patterns-trend-analysis.md`
-  - `firebase-md/anomaly-detection.md`
-  - `firebase-md/auto-categorization-labeling.md`
-  - `firebase-md/community-based-rule-sets.md`
-  - `firebase-md/contextual-categorization.md`
-- Eski `mds` dizini ve `diagram.svg` dosyaları kaldırıldı.
-- Yeni `aw-component-relationships.txt`, `checklist.md`, `firestore.rules`, `storage.rules` dosyaları eklendi.
-
-### 🔧 Teknik İyileştirmeler
-- `aw-client`, `aw-core`, `aw-notify`, `aw-qt` ve `aw-server` alt modülleri AI entegrasyonu için güncellendi ve kendi depolarında kaydedildi.
-
-#### 🔄 Geliştirme Döngüsü
-Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
-Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
-
-## v0.13.4-tauri-integration (2025-07-11 03:45:55)
-
-### ✨ Yeni Özellikler
-- **aw-qt Tauri Entegrasyonu Geliştirildi**
-  - Hedef yönetimi için Tauri komutları (`create_goal_command`, `get_all_goals_command`, `update_goal_command`, `delete_goal_command`) güncellendi ve genişletildi.
-  - Tauri bildirim API'si entegre edildi.
-  - Hedef oluşturma ve güncelleme işlemleri için sistem bildirimleri eklendi.
-  - Genel bildirim göndermek için yeni `send_notification_command` tanımlandı.
-  - SQLite veritabanı ile yerel hedef verisi yönetimi sağlandı.
-
-### 🔧 Teknik İyileştirmeler
-- `aw-qt/src-tauri/src/commands.rs` dosyasına bildirim işlevselliği eklendi.
-- `aw-qt/src-tauri/src/main.rs` dosyasındaki komut işleyicisine yeni Tauri komutları dahil edildi.
-- Veritabanı başlatma ve sorgulama hataları için daha açıklayıcı hata mesajları eklendi.
-
-### 📚 Dokümantasyon Güncellemesi
-- `checklist.md` dosyasındaki "3.1 Hedef Takibi ve İlerleme Durumu" başlığı altındaki "Tauri Entegrasyonu" maddesi tamamlandı olarak işaretlendi.
-
-#### 🔄 Geliştirme Döngüsü
-Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
-Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
