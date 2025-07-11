@@ -1,4 +1,5 @@
 export interface ActivityEvent {
+  id: string; // Firebase Firestore belge ID'si
   timestamp_start: string;
   timestamp_end: string;
   duration_sec: number;

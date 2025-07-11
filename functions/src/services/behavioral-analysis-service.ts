@@ -1,132 +1,98 @@
-import { linearRegression, linearRegressionLine } from "simple-statistics";
+import { db } from "../firebaseAdmin";
+import { ActivityEvent } from "../types/activity-event"; // ActivityEvent'ı içe aktar
 
-interface DailyCategoryTotals {
-  date: string;
-  categories: { [category: string]: number };
-}
-
-interface TrendingCategory {
-  category: string;
-  trend: 'rising' | 'falling' | 'stable';
-  slope_per_day: number;
-}
-
-interface SeasonalityPattern {
-  period: string;
-  pattern: string;
-}
-
-interface BehavioralAnalysisOutput {
-  trending_categories: TrendingCategory[];
-  seasonality: SeasonalityPattern[];
-  summary: string;
+interface RealtimeBehavioralPattern {
+  user_id: string;
+  timestamp: string; // Olayın zaman damgası
+  pattern_type: 'idle_detection' | 'focus_shift' | 'high_activity' | 'low_activity' | 'unusual_category_use';
+  description: string; // Tespit edilen örüntünün açıklaması
+  confidence_score?: number; // Güven skoru (0-1 arası, ML entegrasyonu için)
+  related_activity_id?: string; // İlgili aktivite olayının ID'si
+  metadata?: { [key: string]: any }; // Ek meta veriler
+  model_version: string; // Kullanılan modelin versiyonu
 }
 
 export class BehavioralAnalysisService {
 
   /**
-   * Analyzes behavioral patterns and trends.
-   * @param dailyTotals Daily category totals.
-   * @param window Analysis window (number of days).
-   * @returns Analysis results.
+   * Tekil bir aktivite olayı üzerinden gerçek zamanlı davranışsal örüntüleri analiz eder.
+   * Bu fonksiyon, gelecekte daha gelişmiş makine öğrenimi modellerinin entegrasyonu için bir yer tutucudur.
+   * Şimdilik basit kurallara dayalı tespitler yapar.
+   * @param userId Kullanıcının ID'si.
+   * @param event Analiz edilecek aktivite olayı.
+   * @returns Tespit edilen örüntüleri içeren bir RealtimeBehavioralPattern nesnesi veya null.
    */
-  public analyzeBehavioralPatterns(dailyTotals: DailyCategoryTotals[], window: number): BehavioralAnalysisOutput {
-    const relevantDailyTotals = dailyTotals.slice(-window);
+  public async analyzeRealtimeBehavioralPattern(userId: string, event: ActivityEvent): Promise<RealtimeBehavioralPattern | null> {
+    // Gelecekteki makine öğrenimi modeli entegrasyon noktası.
+    // Buraya TensorFlow.js veya başka bir ML modeli ile gerçek zamanlı sınıflandırma/tespit algoritmaları eklenebilir.
+    // Örneğin, kullanıcının o anki aktivitesini geçmiş desenlerle karşılaştıran bir model.
 
-    const trendingCategories: TrendingCategory[] = [];
-    const allCategories = new Set<string>();
+    let pattern: RealtimeBehavioralPattern | null = null;
+    const timestamp = new Date().toISOString(); // Anlık zaman damgası
 
-    relevantDailyTotals.forEach(day => {
-      Object.keys(day.categories).forEach(cat => allCategories.add(cat));
-    });
-
-    for (const category of Array.from(allCategories)) {
-      const categoryDataPoints: [number, number][] = [];
-      for (let i = 0; i < relevantDailyTotals.length; i++) {
-        categoryDataPoints.push([i, relevantDailyTotals[i].categories[category] || 0]);
-      }
-
-      if (categoryDataPoints.length < 2) continue; // Skip if not enough data
-
-      const regression = linearRegression(categoryDataPoints);
-      const line = linearRegressionLine(regression);
-      const slope = line(1) - line(0); // Slope per day
-
-      let trend: 'rising' | 'falling' | 'stable' = 'stable';
-
-      if (slope > 100) {
-        trend = 'rising';
-      } else if (slope < -100) {
-        trend = 'falling';
-      }
-
-      trendingCategories.push({
-        category: category,
-        trend: trend,
-        slope_per_day: parseFloat(slope.toFixed(2)),
-      });
+    // Örnek: Yüksek AFK süresi tespiti
+    if (event.is_afk && event.duration_sec > 300) { // 5 dakikadan fazla AFK
+      pattern = {
+        user_id: userId,
+        timestamp: event.timestamp_start,
+        pattern_type: 'idle_detection',
+        description: `Kullanıcı ${Math.floor(event.duration_sec / 60)} dakikadan fazla süredir hareketsiz.`, // Türkçeleştirilmiş açıklama
+        confidence_score: 0.8,
+        related_activity_id: event.id, // Eğer ActivityEvent'ta id varsa
+        model_version: "v1.0-rule-based",
+      };
     }
 
-    // Sort by absolute slope and take the top 5
-    trendingCategories.sort((a, b) => Math.abs(b.slope_per_day) - Math.abs(a.slope_per_day));
-    const topTrendingCategories = trendingCategories.slice(0, 5);
+    // Örnek: Odaklanma veya kategori değişimi tespiti (basit mantık)
+    // Bu, art arda gelen iki etkinlik arasında büyük bir kategori veya uygulama değişikliği olup olmadığını kontrol edebilir.
+    // Ancak, bu fonksiyon tek bir olayı işlediği için, bunun için bağlamı (önceki olayı) korumak gerekir.
+    // Bu nedenle, bu tür senaryolar için ek bir durum yönetimi veya arka uçta bir akış işleme yaklaşımı gerekebilir.
 
-    // Seasonality detection (Simplified/Placeholder for now. Autocorrelation would be more robust).
-    // This can be expanded to a more complex algorithm later.
-    const seasonality: SeasonalityPattern[] = [];
-    // Example of a simple rule-based seasonality detection:
-    // If activity consistently drops on weekends or specific days.
-    const weekendDrop = this.detectWeekendDrop(relevantDailyTotals);
-    if (weekendDrop) {
-      seasonality.push({ period: "weekly", pattern: "Hafta sonları aktivite düşüşü gözlemlendi." });
+    // ML entegrasyonu için yer tutucu:
+    // const mlModelPrediction = await this.runMlModel(event);
+    // if (mlModelPrediction.isAnomaly) {
+    //   pattern = { ...mlModelPrediction, model_version: "v2.0-ml-powered" };
+    // }
+
+    return pattern;
+  }
+
+  /**
+   * Bu fonksiyonun artık kullanılmadığını belirtmek için yeniden adlandırıldı.
+   * Yeni gerçek zamanlı analiz için analyzeRealtimeBehavioralPattern kullanın.
+   * @deprecated Artık kullanılmamaktadır. analyzeRealtimeBehavioralPattern kullanın.
+   */
+  public analyzeBehavioralPatterns(): never {
+    throw new Error("analyzeBehavioralPatterns fonksiyonu artık kullanılmamaktadır. Lütfen analyzeRealtimeBehavioralPattern kullanın.");
+  }
+
+  /**
+   * This is a placeholder for a future ML model.
+   * @param event The activity event to analyze.
+   * @returns A promise that resolves to an object indicating if an anomaly was detected.
+   */
+  private async runMlModel(event: ActivityEvent): Promise<{ isAnomaly: boolean; pattern_type?: string; description?: string; confidence_score?: number; }> {
+    // Simulate ML model prediction
+    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate network delay
+    const isAnomaly = Math.random() > 0.9; // 10% chance of anomaly
+    if (isAnomaly) {
+      return {
+        isAnomaly: true,
+        pattern_type: 'unusual_activity',
+        description: 'Makine öğrenimi modeli tarafından sıra dışı bir aktivite tespit edildi.',
+        confidence_score: parseFloat(Math.random().toFixed(2)),
+      };
+    } else {
+      return { isAnomaly: false };
     }
-
-    // Özet metni oluştur
-    let summary = "Genel aktivite desenleri analiz edildi.";
-    if (topTrendingCategories.length > 0) {
-      summary = "Belirli kategorilerde artan veya azalan trendler tespit edildi: ";
-      summary += topTrendingCategories.map(t => `${t.category} (${t.trend})`).join(", ") + ".";
-    }
-
-    return {
-      trending_categories: topTrendingCategories,
-      seasonality: seasonality,
-      summary: summary,
-    };
   }
 
   /**
    * Detects a consistent drop in activity on weekends.
    * This is a simplified rule-based detection for seasonality.
-   * @param dailyTotals Daily category totals.
-   * @returns True if a weekend drop is detected, false otherwise.
+   * @deprecated Artık kullanılmamaktadır.
    */
-  private detectWeekendDrop(dailyTotals: DailyCategoryTotals[]): boolean {
-    if (dailyTotals.length < 7) return false; // Need at least a week of data
-
-    let weekdayTotals: number[] = [];
-    let weekendTotals: number[] = [];
-
-    for (let i = 0; i < dailyTotals.length; i++) {
-      const day = new Date(dailyTotals[i].date);
-      const totalActivity = Object.values(dailyTotals[i].categories).reduce((sum, val) => sum + val, 0);
-      const dayOfWeek = day.getDay(); // 0 for Sunday, 6 for Saturday
-
-      if (dayOfWeek === 0 || dayOfWeek === 6) {
-        weekendTotals.push(totalActivity);
-      } else {
-        weekdayTotals.push(totalActivity);
-      }
-    }
-
-    if (weekdayTotals.length === 0 || weekendTotals.length === 0) return false;
-
-    const avgWeekday = weekdayTotals.reduce((sum, val) => sum + val, 0) / weekdayTotals.length;
-    const avgWeekend = weekendTotals.reduce((sum, val) => sum + val, 0) / weekendTotals.length;
-
-    // Define a threshold for a significant drop (e.g., 30%)
-    const dropThreshold = 0.30;
-
-    return avgWeekend < avgWeekday * (1 - dropThreshold);
+  private detectWeekendDrop(): boolean {
+    throw new Error("detectWeekendDrop fonksiyonu artık kullanılmamaktadır.");
   }
 } 

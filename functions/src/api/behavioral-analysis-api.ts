@@ -1,9 +1,10 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { BehavioralAnalysisService } from '../services/behavioral-analysis-service';
+import { ActivityEvent } from '../types/activity-event'; // ActivityEvent'ı içe aktar
 
 const behavioralAnalysisService = new BehavioralAnalysisService();
 
-export const analyzeBehavioralPatterns = onCall(async (request) => {
+export const analyzeRealtimeBehavioralPattern = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError(
       'unauthenticated',
@@ -11,24 +12,18 @@ export const analyzeBehavioralPatterns = onCall(async (request) => {
     );
   }
 
-  const { dailyTotals, window } = request.data;
+  const userId = request.auth.uid;
+  const activityEvent = request.data.activityEvent as ActivityEvent; // Tekil aktivite olayı bekliyoruz
 
-  if (!dailyTotals || !Array.isArray(dailyTotals)) {
+  if (!activityEvent || !activityEvent.timestamp_start || !activityEvent.app || !activityEvent.title) {
     throw new HttpsError(
       'invalid-argument',
-      'The dailyTotals array is required.'
-    );
-  }
-
-  if (typeof window !== 'number' || window <= 0) {
-    throw new HttpsError(
-      'invalid-argument',
-      'The window must be a positive number.'
+      'The activityEvent object with timestamp_start, app, and title is required.'
     );
   }
 
   try {
-    const result = behavioralAnalysisService.analyzeBehavioralPatterns(dailyTotals, window);
+    const result = await behavioralAnalysisService.analyzeRealtimeBehavioralPattern(userId, activityEvent);
     return { status: 'success', data: result };
   } catch (error: any) {
     throw new HttpsError(

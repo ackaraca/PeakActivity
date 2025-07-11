@@ -81,3 +81,12 @@ Firebase Functions now build and lint cleanly; deployment blocker removed.
 - **T051: Gelişmiş Anomali Tespit Modeli Geliştirme (Ön Uç):**
   - `aw-server/aw-webui/src/views/Alerts.vue` dosyasındaki `AnomalyAlert` arayüzü, arka uçtaki `AnomalyResult` ve `AnomalyOutput` ile uyumlu hale getirildi.
   - Pug şablonu, anomali skoru, sapma yüzdesi, açıklama gibi daha ayrıntılı anomali bilgilerini gösterecek şekilde güncellendi. Tüm yeni metinler Türkçeleştirildi. 
+
+## 2025-07-11 22:39:05 - PeakActivity Geliştirme Güncellemesi
+
+### Yeni Özellikler ve İyileştirmeler:
+- **T052: Gerçek Zamanlı Davranışsal Örüntü Tanıma (Arka Uç):**
+  - `functions/src/services/behavioral-analysis-service.ts` dosyasındaki `analyzeBehavioralPatterns` fonksiyonu, `analyzeRealtimeBehavioralPattern` olarak yeniden adlandırıldı ve tekil `ActivityEvent`'leri işleyerek gerçek zamanlı örüntü tanıma için bir yer tutucu olarak güncellendi.
+  - `RealtimeBehavioralPattern` adında yeni bir arayüz tanımlanarak anlık davranışsal örüntüler için yapı sağlandı.
+  - `functions/src/api/behavioral-analysis-api.ts` ve `functions/src/index.ts` dosyaları, yeni API endpoint'ini dışa aktaracak şekilde güncellendi.
+  - `functions/src/types/activity-event.d.ts` dosyasına `id` alanı eklendi. 

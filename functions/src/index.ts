@@ -12,7 +12,7 @@ import * as firestoreTriggers from './triggers/firestore-triggers';
 import { firestoreDailyBackup } from './triggers/backup-triggers';
 import { detectAnomalies } from './api/anomaly-detection-api';
 import { autoCategorize } from './api/auto-categorization-api';
-import { analyzeBehavioralPatterns } from './api/behavioral-analysis-api';
+import { analyzeRealtimeBehavioralPattern } from './api/behavioral-analysis-api'; // Doğru API'yi içeri aktar
 import { matchCommunityRule } from './api/community-rules-api';
 import { CommunityRulesService } from './services/community-rules-service';
 import { ContextualCategorizationService } from './services/contextual-categorization-service';
@@ -403,9 +403,9 @@ export const analyzeBehavioralTrends = functions.https.onRequest(async (request:
   response.status(200).json(output);
 });
 
+export const analyzeRealtimeBehavioralPattern = analyzeRealtimeBehavioralPattern; // Yeni fonksiyonu dışa aktar
 export { detectAnomalies };
 export { autoCategorize };
-export { analyzeBehavioralPatterns };
 export { matchCommunityRule };
 export { categorizeContext };
 export { createAutomationRule, getAutomationRule, getAllAutomationRules, updateAutomationRule, deleteAutomationRule };
