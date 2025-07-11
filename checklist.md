@@ -244,35 +244,35 @@
   - Tamamlandı: 2025-07-11 03:45:55
 
 ### 3.2 Akıllı Kurallar ve Otomasyon Motoru (IFTTT Tarzı)
-- [ ] **Kural Motoru Mimarisi**
-  - [ ] Firestore'da automation_rules collection tasarımı
-  - [ ] Tetikleyici (trigger) türleri tanımlama
-  - [ ] Eylem (action) türleri ve parametreleri
-  - [ ] Kural öncelik sistemi ve cooldown mekanizması
+- [x] **Kural Motoru Mimarisi**
+  - [x] Firestore'da automation_rules collection tasarımı
+  - [x] Tetikleyici (trigger) türleri tanımlama
+  - [x] Eylem (action) türleri ve parametreleri
+  - [x] Kural öncelik sistemi ve cooldown mekanizması
 
-- [ ] **Tetikleyici Sistemleri**
-  - [ ] Zaman tabanlı tetikleyiciler (time_spent, schedule)
-  - [ ] Uygulama tabanlı tetikleyiciler (app_opened, category_time)
-  - [ ] Durum tabanlı tetikleyiciler (idle_time, focus_mode)
-  - [ ] Koşul değerlendirme motoru
+- [x] **Tetikleyici Sistemleri**
+  - [x] Zaman tabanlı tetikleyiciler (time_spent, schedule)
+  - [x] Uygulama tabanlı tetikleyiciler (app_opened, category_time)
+  - [x] Durum tabanlı tetikleyiciler (idle_time, focus_mode)
+  - [x] Koşul değerlendirme motoru
 
-- [ ] **Eylem Sistemleri**
-  - [ ] Bildirim eylemleri (show_notification)
-  - [ ] Uygulama kontrolü (block_app, suggest_break)
-  - [ ] Sistem durumu değişiklikleri (switch_focus_mode)
-  - [ ] Veri toplama eylemleri (log_mood, context_prompt)
+- [x] **Eylem Sistemleri**
+  - [x] Bildirim eylemleri (show_notification)
+  - [x] Uygulama kontrolü (block_app, suggest_break)
+  - [x] Sistem durumu değişiklikleri (switch_focus_mode)
+  - [x] Veri toplama eylemleri (log_mood, context_prompt)
 
-- [ ] **Kural Editörü (Frontend)**
-  - [ ] Drag & drop kural oluşturma arayüzü
-  - [ ] Koşul ve eylem seçici komponenti
-  - [ ] Kural test ve önizleme özelliği
-  - [ ] Kural performans istatistikleri
+- [x] **Kural Editörü (Frontend)**
+  - [x] Drag & drop kural oluşturma arayüzü
+  - [x] Koşul ve eylem seçici komponenti
+  - [x] Kural test ve önizleme özelliği
+  - [x] Kural performans istatistikleri
 
-- [ ] **Tauri Kural Yürütücüsü**
-  - [ ] Yerel kural motoru (Rust)
-  - [ ] Gerçek zamanlı koşul izleme
-  - [ ] Sistem API entegrasyonları
-  - [ ] Kural başarı/başarısızlık takibi
+- [x] **Tauri Kural Yürütücüsü**
+  - [x] Yerel kural motoru (Rust)
+  - [x] Gerçek zamanlı koşul izleme
+  - [x] Sistem API entegrasyonları
+  - [x] Kural başarı/başarısızlık takibi
 
 ### 3.3 Proje Tamamlama Tahmini ve Risk Analizi
 - [ ] **Tahmin Algoritması Geliştirme**
