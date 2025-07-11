@@ -23,50 +23,15 @@ interface BehavioralAnalysisOutput {
 }
 
 export class BehavioralAnalysisService {
-
-  // Geçici veri: Gerçek uygulamada Firestore'dan veya başka bir kaynaktan alınacak
-  private readonly MOCK_DAILY_TOTALS: DailyCategoryTotals[] = [
-    { date: "2023-01-01", categories: { "coding": 15000, "browsing": 8000, "social": 1000, "gaming": 500 } },
-    { date: "2023-01-02", categories: { "coding": 15500, "browsing": 7800, "social": 1100, "gaming": 600 } },
-    { date: "2023-01-03", categories: { "coding": 16000, "browsing": 7500, "social": 1200, "gaming": 550 } },
-    { date: "2023-01-04", categories: { "coding": 16200, "browsing": 7000, "social": 1300, "gaming": 700 } },
-    { date: "2023-01-05", categories: { "coding": 16500, "browsing": 6800, "social": 1400, "gaming": 650 } },
-    { date: "2023-01-06", categories: { "coding": 17000, "browsing": 6500, "social": 1500, "gaming": 800 } },
-    { date: "2023-01-07", categories: { "coding": 17200, "browsing": 6300, "social": 1600, "gaming": 750 } },
-    { date: "2023-01-08", categories: { "coding": 17500, "browsing": 6000, "social": 1700, "gaming": 900 } },
-    { date: "2023-01-09", categories: { "coding": 17800, "browsing": 5800, "social": 1800, "gaming": 850 } },
-    { date: "2023-01-10", categories: { "coding": 18000, "browsing": 5500, "social": 1900, "gaming": 1000 } },
-    { date: "2023-01-11", categories: { "coding": 18200, "browsing": 5300, "social": 2000, "gaming": 950 } },
-    { date: "2023-01-12", categories: { "coding": 18500, "browsing": 5000, "social": 2100, "gaming": 1100 } },
-    { date: "2023-01-13", categories: { "coding": 18800, "browsing": 4800, "social": 2200, "gaming": 1050 } },
-    { date: "2023-01-14", categories: { "coding": 19000, "browsing": 4500, "social": 2300, "gaming": 1200 } },
-    { date: "2023-01-15", categories: { "coding": 19200, "browsing": 4300, "social": 2400, "gaming": 1150 } },
-    { date: "2023-01-16", categories: { "coding": 19500, "browsing": 4000, "social": 2500, "gaming": 1300 } },
-    { date: "2023-01-17", categories: { "coding": 19800, "browsing": 3800, "social": 2600, "gaming": 1250 } },
-    { date: "2023-01-18", categories: { "coding": 20000, "browsing": 3500, "social": 2700, "gaming": 1400 } },
-    { date: "2023-01-19", categories: { "coding": 20200, "browsing": 3300, "social": 2800, "gaming": 1350 } },
-    { date: "2023-01-20", categories: { "coding": 20500, "browsing": 3000, "social": 2900, "gaming": 1500 } },
-    { date: "2023-01-21", categories: { "coding": 20800, "browsing": 2800, "social": 3000, "gaming": 1450 } },
-    { date: "2023-01-22", categories: { "coding": 21000, "browsing": 2500, "social": 3100, "gaming": 1600 } },
-    { date: "2023-01-23", categories: { "coding": 21200, "browsing": 2300, "social": 3200, "gaming": 1550 } },
-    { date: "2023-01-24", categories: { "coding": 21500, "browsing": 2000, "social": 3300, "gaming": 1700 } },
-    { date: "2023-01-25", categories: { "coding": 21800, "browsing": 1800, "social": 3400, "gaming": 1650 } },
-    { date: "2023-01-26", categories: { "coding": 22000, "browsing": 1500, "social": 3500, "gaming": 1800 } },
-    { date: "2023-01-27", categories: { "coding": 22200, "browsing": 1300, "social": 3600, "gaming": 1750 } },
-    { date: "2023-01-28", categories: { "coding": 22500, "browsing": 1000, "social": 3700, "gaming": 1900 } },
-    { date: "2023-01-29", categories: { "coding": 22800, "browsing": 800, "social": 3800, "gaming": 1850 } },
-    { date: "2023-01-30", categories: { "coding": 23000, "browsing": 500, "social": 3900, "gaming": 2000 } }
-];
-
   /**
-   * Doğrusal regresyon eğimini hesaplar.
-   * Basit bir regresyon uygulamasıdır (y = mx + b).
-   * @param data Noktaların y-değerleri (kategori süreleri).
-   * @returns Eğimin değeri (m).
+   * Calculates the linear regression slope.
+   * This is a simplified regression implementation (y = mx + b).
+   * @param data The y-values of the points (category durations).
+   * @returns The slope value (m).
    */
   private calculateLinearRegressionSlope(data: number[]): number {
     const n = data.length;
-    if (n < 2) return 0; // Eğim hesaplamak için en az 2 nokta gerekir
+    if (n < 2) return 0; // Requires at least 2 points to calculate slope
 
     let sum_x = 0;
     let sum_y = 0;
@@ -74,7 +39,7 @@ export class BehavioralAnalysisService {
     let sum_x2 = 0;
 
     for (let i = 0; i < n; i++) {
-      const x = i; // Gün sayısı olarak x
+      const x = i; // x as day number
       const y = data[i];
 
       sum_x += x;
@@ -84,20 +49,20 @@ export class BehavioralAnalysisService {
     }
 
     const denominator = n * sum_x2 - sum_x * sum_x;
-    if (denominator === 0) return 0; // Dikey çizgi veya tüm x değerleri aynı
+    if (denominator === 0) return 0; // Vertical line or all x values are the same
 
     const slope = (n * sum_xy - sum_x * sum_y) / denominator;
     return slope;
   }
 
   /**
-   * Davranışsal desenleri ve trendleri analiz eder.
-   * @param dailyTotals Günlük kategori toplamları.
-   * @param window Analiz penceresi (gün sayısı).
-   * @returns Analiz sonuçları.
+   * Analyzes behavioral patterns and trends.
+   * @param dailyTotals Daily category totals.
+   * @param window Analysis window (number of days).
+   * @returns Analysis results.
    */
   public analyzeBehavioralPatterns(dailyTotals: DailyCategoryTotals[], window: number): BehavioralAnalysisOutput {
-    const relevantDailyTotals = dailyTotals.slice(-window); // Son 'window' gününü al
+    const relevantDailyTotals = dailyTotals.slice(-window); // Get the last 'window' days
 
     const trendingCategories: TrendingCategory[] = [];
     const allCategories = new Set<string>();
@@ -108,7 +73,7 @@ export class BehavioralAnalysisService {
 
     for (const category of Array.from(allCategories)) {
       const categoryData = relevantDailyTotals.map(day => day.categories[category] || 0);
-      if (categoryData.length < 2) continue; // Yeterli veri yoksa atla
+      if (categoryData.length < 2) continue; // Skip if not enough data
 
       const slope = this.calculateLinearRegressionSlope(categoryData);
       let trend: 'rising' | 'falling' | 'stable' = 'stable';
@@ -126,15 +91,19 @@ export class BehavioralAnalysisService {
       });
     }
 
-    // Mutlak eğime göre sırala ve ilk 5'i al
+    // Sort by absolute slope and take the top 5
     trendingCategories.sort((a, b) => Math.abs(b.slope_per_day) - Math.abs(a.slope_per_day));
     const topTrendingCategories = trendingCategories.slice(0, 5);
 
-    // Mevsimsellik tespiti (Şimdilik yer tutucu, daha karmaşık bir algoritma gerektirir)
-    const seasonality: SeasonalityPattern[] = [
-      { period: "weekly", pattern: "Hafta sonları aktivite düşüşü gözlemlendi." },
-      { period: "monthly", pattern: "Ay sonlarına doğru yoğunlaşma." } // Örnek
-    ];
+    // Seasonality detection (Simplified/Placeholder for now. Autocorrelation would be more robust).
+    // This can be expanded to a more complex algorithm later.
+    const seasonality: SeasonalityPattern[] = [];
+    // Example of a simple rule-based seasonality detection:
+    // If activity consistently drops on weekends or specific days.
+    const weekendDrop = this.detectWeekendDrop(relevantDailyTotals);
+    if (weekendDrop) {
+      seasonality.push({ period: "weekly", pattern: "Hafta sonları aktivite düşüşü gözlemlendi." });
+    }
 
     // Özet metni oluştur
     let summary = "Genel aktivite desenleri analiz edildi.";
@@ -151,17 +120,37 @@ export class BehavioralAnalysisService {
   }
 
   /**
-   * Davranışsal analiz için geçici günlük kategori toplamlarını döndürür.
-   * Gerçek uygulamada, bu Firestore'dan verileri çekecektir.
-   * @returns DailyCategoryTotals nesnelerinin bir dizisine çözümleyen bir Promise.
+   * Detects a consistent drop in activity on weekends.
+   * This is a simplified rule-based detection for seasonality.
+   * @param dailyTotals Daily category totals.
+   * @returns True if a weekend drop is detected, false otherwise.
    */
-  public async getDailyCategoryTotals(window: number = 30): Promise<DailyCategoryTotals[]> {
-    // Veritabanından veri çekmeyi simüle et
-    return new Promise(resolve => {
-      setTimeout(() => {
-        // Son 'window' gün kadar mock veri döndür
-        resolve(this.MOCK_DAILY_TOTALS.slice(-window));
-      }, 500); // Ağ gecikmesini simüle et
-    });
+  private detectWeekendDrop(dailyTotals: DailyCategoryTotals[]): boolean {
+    if (dailyTotals.length < 7) return false; // Need at least a week of data
+
+    let weekdayTotals: number[] = [];
+    let weekendTotals: number[] = [];
+
+    for (let i = 0; i < dailyTotals.length; i++) {
+      const day = new Date(dailyTotals[i].date);
+      const totalActivity = Object.values(dailyTotals[i].categories).reduce((sum, val) => sum + val, 0);
+      const dayOfWeek = day.getDay(); // 0 for Sunday, 6 for Saturday
+
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        weekendTotals.push(totalActivity);
+      } else {
+        weekdayTotals.push(totalActivity);
+      }
+    }
+
+    if (weekdayTotals.length === 0 || weekendTotals.length === 0) return false;
+
+    const avgWeekday = weekdayTotals.reduce((sum, val) => sum + val, 0) / weekdayTotals.length;
+    const avgWeekend = weekendTotals.reduce((sum, val) => sum + val, 0) / weekendTotals.length;
+
+    // Define a threshold for a significant drop (e.g., 30%)
+    const dropThreshold = 0.30;
+
+    return avgWeekend < avgWeekday * (1 - dropThreshold);
   }
 } 

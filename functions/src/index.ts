@@ -16,6 +16,14 @@ import { matchCommunityRule } from './api/community-rules-api';
 import { categorizeContext } from './api/contextual-categorization-api';
 import { calculateFocusQualityScore } from './api/focus-quality-score-api';
 import { createAutomationRule, getAutomationRule, getAllAutomationRules, updateAutomationRule, deleteAutomationRule } from './api/automation-rule-api';
+import { saveActivity } from './api/activity-api';
+import { createProject, getProject, updateProject, getAllProjects, deleteProject, predictProjectCompletion } from './api/project-prediction-api';
+import { createGoal, getGoal, updateGoal, deleteGoal, listGoals } from "./api/goal-management-api";
+import { createReport, getReport, updateReport, deleteReport, listReports, generateReportData } from "./api/report-management-api";
+import { createCustomEvent, getCustomEvent, updateCustomEvent, deleteCustomEvent, listCustomEvents } from "./api/custom-event-api";
+import { generateInsight, listInsights, getInsight, deleteInsight } from "./api/insight-generation-api";
+import { createNotification, getNotification, updateNotification, deleteNotification, listNotifications } from "./api/notification-api";
+import { createFocusMode, getFocusMode, updateFocusMode, deleteFocusMode, listFocusModes, setActiveFocusMode } from "./api/focus-mode-api";
 
 // Global settings
 setGlobalOptions({
@@ -314,6 +322,14 @@ export { analyzeBehavioralPatterns };
 export { matchCommunityRule };
 export { categorizeContext };
 export { createAutomationRule, getAutomationRule, getAllAutomationRules, updateAutomationRule, deleteAutomationRule };
+export { saveActivity };
+export { createProject, getProject, updateProject, getAllProjects, deleteProject, predictProjectCompletion };
+export { createGoal, getGoal, updateGoal, deleteGoal, listGoals };
+export { createReport, getReport, updateReport, deleteReport, listReports, generateReportData } from "./api/report-management-api";
+export { createCustomEvent, getCustomEvent, updateCustomEvent, deleteCustomEvent, listCustomEvents } from "./api/custom-event-api";
+export { generateInsight, listInsights, getInsight, deleteInsight } from "./api/insight-generation-api";
+export { createNotification, getNotification, updateNotification, deleteNotification, listNotifications } from "./api/notification-api";
+export { createFocusMode, getFocusMode, updateFocusMode, deleteFocusMode, listFocusModes, setActiveFocusMode } from "./api/focus-mode-api";
 
 export const autoCategorize = functions.https.onRequest(async (request: Request, response: Response) => {
   if (request.method !== "POST") {

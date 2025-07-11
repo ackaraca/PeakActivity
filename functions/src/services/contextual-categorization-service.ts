@@ -23,72 +23,78 @@ export class ContextualCategorizationService {
     'shopping',
   ];
 
-  // Basit bir anahtar kelime tabanlı sınıflandırma simülasyonu
-  private readonly KEYWORD_CATEGORIES: { [key: string]: string } = {
-    'css': 'coding',
-    'html': 'coding',
-    'javascript': 'coding',
-    'python': 'coding',
-    'code': 'coding',
-    'figma': 'design',
-    'photoshop': 'design',
-    'design': 'design',
-    'ux': 'design',
-    'wiki': 'research',
-    'article': 'research',
-    'study': 'research',
-    'facebook': 'social',
-    'twitter': 'social',
-    'instagram': 'social',
-    'cnn': 'news',
-    'bbc': 'news',
-    'haber': 'news',
-    'movie': 'entertainment',
-    'film': 'entertainment',
-    'youtube': 'entertainment',
-    'netflix': 'entertainment',
-    'slack': 'communication',
-    'email': 'communication',
-    'zoom': 'communication',
-    'shop': 'shopping',
-    'buy': 'shopping',
-    'amazon': 'shopping',
+  // Gelişmiş anahtar kelime tabanlı sınıflandırma (LLM simülasyonu)
+  private readonly KEYWORD_GROUPS: { [category: string]: string[] } = {
+    'coding': ['code', 'github', 'stack overflow', 'css', 'html', 'javascript', 'python', 'develop', 'programming', 'vscode', 'intellij', 'bug'],
+    'design': ['figma', 'photoshop', 'illustrator', 'design', 'ui', 'ux', 'blender', 'sketch'],
+    'research': ['wiki', 'article', 'study', 'research', 'paper', 'learn', 'scholar', 'analyze'],
+    'social': ['facebook', 'twitter', 'instagram', 'linkedin', 'reddit', 'chat', 'meet', 'discord'],
+    'news': ['cnn', 'bbc', 'haber', 'gündem', 'news', 'makale'],
+    'entertainment': ['movie', 'film', 'youtube', 'netflix', 'oyun', 'game', 'dizi', 'müzik'],
+    'communication': ['email', 'outlook', 'gmail', 'slack', 'teams', 'zoom', 'call'],
+    'shopping': ['shop', 'buy', 'amazon', 'trendyol', 'n11', 'satın al'],
   };
 
   /**
    * Bağlamsal bilgiyi kullanarak kategorizasyon yapar.
+   * LLM tabanlı sıfır atışlı sınıflandırmayı simüle eder.
    * @param input Kategorize edilecek bağlam ve dil bilgisi.
    * @returns Kategorizasyon sonucunu içeren çıktı nesnesi.
    */
   public categorizeContext(input: ContextualCategorizationInput): ContextualCategorizationOutput {
     const text = input.context.toLowerCase();
-    let detectedCategory: string | null = null;
-    let rationale = "";
+    let scores: { [category: string]: number } = {};
+    this.LABELS.forEach(label => (scores[label] = 0));
 
-    // Basit dil algılama ve çeviri simülasyonu (şimdilik sadece İngilizce varsayımı)
-    // Gerçek bir senaryoda, LLM tabanlı bir çeviri hizmeti kullanılabilir.
-    const processedText = text; 
+    // 1. Dil algılama ve çeviri simülasyonu (şimdilik doğrudan LLM çağrısı yapılamadığı için basitleştirildi)
+    // Gerçek bir senaryoda, bu adım için bir dil algılama ve çeviri servisi kullanılmalıdır.
+    const processedText = text; // Varsayılan olarak İngilizce veya zaten işlenmiş kabul ediliyor
 
-    for (const keyword in this.KEYWORD_CATEGORIES) {
-      if (processedText.includes(keyword)) {
-        detectedCategory = this.KEYWORD_CATEGORIES[keyword];
-        rationale = `Anahtar kelime içeriyor: ${keyword}, ${detectedCategory} ile ilgili.`;
-        break; // İlk eşleşen anahtar kelimeyi al
+    let relevantKeywords: { [category: string]: string[] } = {};
+
+    // Her kategori için anahtar kelime eşleştirmesi ile puanlama
+    for (const label of this.LABELS) {
+      for (const keyword of this.KEYWORD_GROUPS[label] || []) {
+        if (processedText.includes(keyword)) {
+          scores[label]++;
+          if (!relevantKeywords[label]) relevantKeywords[label] = [];
+          relevantKeywords[label].push(keyword);
+        }
       }
     }
 
-    if (detectedCategory) {
-      return {
-        category: detectedCategory,
-        confidence: 0.9, // Sabit yüksek güven, LLM simülasyonu için
-        rationale: rationale.substring(0, 140), // 140 karakterle sınırlı
-      };
-    } else {
-      return {
-        category: "other",
-        confidence: 0.5,
-        rationale: "Belirlenen anahtar kelime bulunamadı.",
-      };
+    const totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0);
+
+    let assignedCategory: string = "other";
+    let confidence = 0.5;
+    let rationale = "Belirlenen anahtar kelime bulunamadı.";
+
+    if (totalScore > 0) {
+      // En yüksek puanlı kategoriyi bul
+      let maxScore = -1;
+      for (const label of this.LABELS) {
+        if (scores[label] > maxScore) {
+          maxScore = scores[label];
+          assignedCategory = label;
+        }
+      }
+
+      // Güven oranını hesapla (basit softmax benzeri)
+      confidence = maxScore / totalScore;
+
+      // Gerekçe oluştur
+      if (relevantKeywords[assignedCategory] && relevantKeywords[assignedCategory].length > 0) {
+        const keywordsStr = relevantKeywords[assignedCategory].join(", ");
+        rationale = `Anahtar kelimeler içeriyor: ${keywordsStr}. Kategoriye işaret ediyor: ${assignedCategory}.`;
+      } else {
+        rationale = `Bağlam ilgili: ${assignedCategory}.`;
+      }
     }
+
+    return {
+      category: assignedCategory,
+      confidence: parseFloat(confidence.toFixed(2)),
+      rationale: rationale.substring(0, 140), // 140 karakterle sınırlı
+    };
   }
 } 

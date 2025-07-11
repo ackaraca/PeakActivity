@@ -4,23 +4,36 @@ import { BehavioralAnalysisService } from '../services/behavioral-analysis-servi
 const behavioralAnalysisService = new BehavioralAnalysisService();
 
 export const analyzeBehavioralPatterns = functions.https.onCall(async (data, context) => {
-  const { window } = data;
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'The function must be called while authenticated.'
+    );
+  }
+
+  const { dailyTotals, window } = data;
+
+  if (!dailyTotals || !Array.isArray(dailyTotals)) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'The dailyTotals array is required.'
+    );
+  }
 
   if (typeof window !== 'number' || window <= 0) {
-    return { success: false, error: "Geçersiz giriş: 'window' pozitif bir sayı olmalı." };
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'The window must be a positive number.'
+    );
   }
 
   try {
-    const dailyTotals = await behavioralAnalysisService.getDailyCategoryTotals(window);
     const result = behavioralAnalysisService.analyzeBehavioralPatterns(dailyTotals, window);
-    return { success: true, data: result };
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("Davranışsal analiz sırasında hata oluştu:", error.message);
-      return { success: false, error: error.message };
-    } else {
-      console.error("Bilinmeyen bir hata oluştu:", error);
-      return { success: false, error: "Bilinmeyen bir hata oluştu." };
-    }
+    return { status: 'success', data: result };
+  } catch (error: any) {
+    throw new functions.https.HttpsError(
+      'internal',
+      error.message || 'An unknown error occurred.'
+    );
   }
 }); 

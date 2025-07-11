@@ -23,17 +23,17 @@ interface SessionScore {
 
 interface FocusQualityScoreOutput {
   session_scores: SessionScore[];
-  daily_average: number;
+  daily_average: number | null;
   explanations: string;
 }
 
 export class FocusQualityScoreService {
 
   /**
-   * Tek bir oturum için odak kalitesi skorunu hesaplar.
-   * @param sessionEvents Oturuma ait etkinlikler.
-   * @param userTimeZone Kullanıcının zaman dilimi.
-   * @returns Hesaplanan oturum skoru.
+   * Calculates the focus quality score for a single session.
+   * @param sessionEvents Events belonging to the session.
+   * @param userTimeZone User's time zone.
+   * @returns Calculated session score.
    */
   private calculateSessionScore(sessionEvents: ActivityEvent[], userTimeZone: string): SessionScore | null {
     if (sessionEvents.length === 0) {
@@ -43,18 +43,18 @@ export class FocusQualityScoreService {
     const firstEvent = sessionEvents[0];
     const lastEvent = sessionEvents[sessionEvents.length - 1];
 
-    // Oturumun başlangıç ve bitiş zamanlarını al
+    // Get session start and end times
     const sessionStart = parseISO(firstEvent.timestamp_start);
     const sessionEnd = parseISO(lastEvent.timestamp_end);
 
-    // 1. Temel puanlama: Kesintisiz non-AFK süresi ≥ 5 dakika
+    // 1. Base score: Continuous non-AFK time ≥ 5 min.
     let baseScore = 100;
     const sessionDurationMinutes = differenceInSeconds(sessionEnd, sessionStart) / 60;
     if (sessionDurationMinutes < 5 || sessionEvents.some(event => event.is_afk)) {
-      return null; // Nitelikli bir oturum değil
+      return null; // Not a qualifying session
     }
 
-    // 2. Bağlam geçişi (pencere/uygulama değişikliği) başına -1 puan (ilkten sonra)
+    // 2. -1 point per context switch (window/app change) after the first.
     let contextSwitchPenalty = 0;
     let distractions = 0;
     if (sessionEvents.length > 1) {
@@ -67,7 +67,7 @@ export class FocusQualityScoreService {
     }
     baseScore -= contextSwitchPenalty;
 
-    // 3. input_frequency < 0.1 olan her dakika için -0.5 puan (pasif tüketim)
+    // 3. -0.5 point per minute where `input_frequency < 0.1` (passive consumption).
     let passiveConsumptionPenalty = 0;
     for (const event of sessionEvents) {
       if (event.input_frequency < 0.1) {
@@ -76,18 +76,18 @@ export class FocusQualityScoreService {
     }
     baseScore -= passiveConsumptionPenalty;
 
-    // 4. Oturumda herhangi bir sosyal medya kategorisi uygulaması kullanılıyorsa -10 puan
-    const socialMediaCategories = ['social', 'gaming', 'entertainment']; // Tanımdan farklı, daha geniş bir sosyal medya tanımı
-    if (sessionEvents.some(event => socialMediaCategories.includes(event.category)))
-    {
+    // 4. -10 points if any social-media category app is used in the session.
+    const socialMediaCategories = ['social']; // Kurala uygun olarak sadece 'social' kategorisi
+    if (sessionEvents.some(event => socialMediaCategories.includes(event.category))) {
       baseScore -= 10;
-      distractions += 1; // Sosyal medya kullanımı da bir dikkat dağıtıcıdır
+      distractions += 1; // Social media usage is also a distraction
     }
 
-    // 5. Yerel saate göre 09:00-12:00 arasındaki oturumlar için +5 puan, 00:00-06:00 arası için -5 puan
+    // 5. +5 points for sessions between 09:00-12:00 local time, -5 for sessions between 00:00-06:00.
     const zonedSessionStart = utcToZonedTime(sessionStart, userTimeZone);
     const startHour = getHours(zonedSessionStart);
 
+    // Define local time ranges (adjusting for time zone differences if necessary)
     const nineAm = getHours(utcToZonedTime(setHours(setMinutes(setSeconds(new Date(), 0), 0), 9), userTimeZone));
     const twelvePm = getHours(utcToZonedTime(setHours(setMinutes(setSeconds(new Date(), 0), 0), 12), userTimeZone));
     const midnight = getHours(utcToZonedTime(setHours(setMinutes(setSeconds(new Date(), 0), 0), 0), userTimeZone));
@@ -99,7 +99,7 @@ export class FocusQualityScoreService {
       baseScore -= 5;
     }
 
-    // 6. Puanları 0-100 aralığına sabitle
+    // 6. Clamp scores to the range 0-100.
     const finalScore = Math.max(0, Math.min(100, baseScore));
 
     return {
@@ -111,16 +111,16 @@ export class FocusQualityScoreService {
   }
 
   /**
-   * Aktivite etkinliklerinden odak kalitesi skorlarını hesaplar.
-   * @param events Aktivite etkinlikleri dizisi.
-   * @param userTimeZone Kullanıcının zaman dilimi.
-   * @returns Hesaplanan odak kalitesi skorlarını içeren çıktı nesnesi.
+   * Calculates focus quality scores from activity events.
+   * @param events Activity events array.
+   * @param userTimeZone User's time zone.
+   * @returns Output object containing calculated focus quality scores.
    */
   public calculateFocusQualityScores(events: ActivityEvent[], userTimeZone: string): FocusQualityScoreOutput {
     const sessionScores: SessionScore[] = [];
     let currentSession: ActivityEvent[] = [];
 
-    // Etkinlikleri kronolojik sıraya göre sırala (gerekliyse)
+    // Sort events by chronological order (if necessary)
     events.sort((a, b) => new Date(a.timestamp_start).getTime() - new Date(b.timestamp_start).getTime());
 
     for (const event of events) {
@@ -128,9 +128,9 @@ export class FocusQualityScoreService {
         currentSession.push(event);
       } else {
         const lastEventInSession = currentSession[currentSession.length - 1];
-        // Eğer etkinlik, önceki oturumun bitişinden 5 dakikadan daha az bir süre sonra başlıyorsa aynı oturumda kabul et
+        // If the event starts less than 5 minutes after the end of the previous session, consider it part of the same session
         const gap = differenceInSeconds(parseISO(event.timestamp_start), parseISO(lastEventInSession.timestamp_end));
-        if (gap <= 300) { // 5 dakika = 300 saniye
+        if (gap <= 300) { // 5 minutes = 300 seconds
           currentSession.push(event);
         } else {
           const score = this.calculateSessionScore(currentSession, userTimeZone);
@@ -142,7 +142,7 @@ export class FocusQualityScoreService {
       }
     }
 
-    // Son oturumu ekle
+    // Add the last session
     const score = this.calculateSessionScore(currentSession, userTimeZone);
     if (score) {
       sessionScores.push(score);
@@ -151,7 +151,7 @@ export class FocusQualityScoreService {
     const totalScores = sessionScores.map(s => s.focus_quality_score);
     const dailyAverage = totalScores.length > 0 
       ? parseFloat((totalScores.reduce((sum, s) => sum + s, 0) / totalScores.length).toFixed(0)) 
-      : 0;
+      : null; // Return null if no qualifying sessions
 
     let explanations = "Odak kalitesi analizi tamamlandı.";
     if (sessionScores.length === 0) {
@@ -159,101 +159,9 @@ export class FocusQualityScoreService {
     }
 
     return {
-      session_scores: sessionScores,
+      session_scores: sessionScores.length > 0 ? sessionScores : [], // Return empty array if no scores
       daily_average: dailyAverage,
       explanations: explanations,
     };
-  }
-
-  /**
-   * Mock aktivite etkinlik verilerini döndürür.
-   * Gerçek uygulamada, bu Firestore'dan verileri çekecektir.
-   * @returns ActivityEvent nesnelerinin bir dizisine çözümleyen bir Promise.
-   */
-  public async getMockActivityEvents(): Promise<ActivityEvent[]> {
-    // Mock data for demonstration
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve([
-          {
-            timestamp_start: "2023-07-20T09:00:00Z",
-            timestamp_end: "2023-07-20T09:30:00Z",
-            duration_sec: 1800,
-            app: "Visual Studio Code",
-            title: "index.ts",
-            category: "coding",
-            window_change_count: 2,
-            input_frequency: 0.9,
-            is_afk: false,
-          },
-          {
-            timestamp_start: "2023-07-20T09:30:01Z",
-            timestamp_end: "2023-07-20T10:00:00Z",
-            duration_sec: 1799,
-            app: "Visual Studio Code",
-            title: "app.js",
-            category: "coding",
-            window_change_count: 1,
-            input_frequency: 0.8,
-            is_afk: false,
-          },
-          {
-            timestamp_start: "2023-07-20T10:05:00Z",
-            timestamp_end: "2023-07-20T10:15:00Z",
-            duration_sec: 600,
-            app: "Discord",
-            title: "#general",
-            category: "social",
-            window_change_count: 0,
-            input_frequency: 0.2,
-            is_afk: false,
-          },
-          {
-            timestamp_start: "2023-07-20T10:15:01Z",
-            timestamp_end: "2023-07-20T10:20:00Z",
-            duration_sec: 299,
-            app: "Visual Studio Code",
-            title: "main.ts",
-            category: "coding",
-            window_change_count: 0,
-            input_frequency: 0.7,
-            is_afk: false,
-          },
-          {
-            timestamp_start: "2023-07-20T14:00:00Z",
-            timestamp_end: "2023-07-20T14:30:00Z",
-            duration_sec: 1800,
-            app: "Chrome",
-            title: "Netflix",
-            category: "entertainment",
-            window_change_count: 5,
-            input_frequency: 0.05,
-            is_afk: false,
-          },
-          {
-            timestamp_start: "2023-07-20T05:00:00Z",
-            timestamp_end: "2023-07-20T05:10:00Z",
-            duration_sec: 600,
-            app: "CodingApp",
-            title: "early_code.py",
-            category: "coding",
-            window_change_count: 1,
-            input_frequency: 0.7,
-            is_afk: false,
-          },
-          {
-            timestamp_start: "2023-07-20T05:10:01Z",
-            timestamp_end: "2023-07-20T05:16:00Z", // 6 dakikalık AFK
-            duration_sec: 359,
-            app: "CodingApp",
-            title: "early_code.py",
-            category: "coding",
-            window_change_count: 0,
-            input_frequency: 0,
-            is_afk: true,
-          },
-        ]);
-      }, 500);
-    });
   }
 } 

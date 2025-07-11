@@ -1,5 +1,33 @@
 # PeakActivity - Versiyon Geçmişi
 
+## v0.13.6-backend-ui-integration-part1 (2025-07-11 04:29:15)
+
+### ✨ Yeni Özellikler
+- **Kullanıcı Hedef Yönetimi Backend Servisi:** Kullanıcıların hedeflerini (oluşturma, okuma, güncelleme, silme, listeleme) yönetmek için bir arka uç servisi (`GoalManagementService`) ve Firebase Cloud Functions API uç noktaları (`createGoal`, `getGoal`, `updateGoal`, `deleteGoal`, `listGoals`) geliştirildi. `firestore-data-modeling.md` dosyasına `GoalDocument` arayüzü eklendi.
+- **Rapor ve Gösterge Tablosu Yönetimi Backend Servisi:** Kullanıcıların özelleştirilebilir raporlar ve gösterge tabloları (oluşturma, okuma, güncelleme, silme, listeleme, veri oluşturma) oluşturabilmesi ve yönetebilmesi için bir arka uç servisi (`ReportManagementService`) ve Firebase Cloud Functions API uç noktaları (`createReport`, `getReport`, `updateReport`, `deleteReport`, `listReports`, `generateReportData`) geliştirildi. `firestore-data-modeling.md` dosyasına `ReportDocument` arayüzü eklendi.
+- **Özel Etkinlik Yönetimi Backend Servisi:** Gelişmiş analitik ve içgörüler için özel etkinlikleri (oluşturma, okuma, güncelleme, silme, listeleme) toplayan ve işleyen bir arka uç servisi (`CustomEventService`) ve Firebase Cloud Functions API uç noktaları (`createCustomEvent`, `getCustomEvent`, `updateCustomEvent`, `deleteCustomEvent`, `listCustomEvents`) geliştirildi. `firestore-data-modeling.md` dosyasına `CustomEventDocument` arayüzü eklendi.
+- **İçgörü Üretimi Backend Servisi:** Kullanıcı verilerinden (anomali tespiti, davranışsal trendler, odak kalitesi puanı gibi mevcut AI servislerini kullanarak) gelişmiş analitik ve öngörüler oluşturan bir arka uç servisi (`InsightGenerationService`) ve Firebase Cloud Functions API uç noktaları (`generateInsight`, `listInsights`, `getInsight`, `deleteInsight`) geliştirildi. `firestore-data-modeling.md` dosyasında `InsightDocument` arayüzü tanımlandı.
+- **Bildirim Servisi Backend:** Kullanıcıya özel bildirimler ve uyarılar (oluşturma, okuma, güncelleme, silme, listeleme) göndermek için bir arka uç bildirim servisi (`NotificationService`) ve Firebase Cloud Functions API uç noktaları (`createNotification`, `getNotification`, `updateNotification`, `deleteNotification`, `listNotifications`) geliştirildi. `firestore-data-modeling.md` dosyasına `NotificationDocument` arayüzü eklendi.
+- **Odaklanma Modu Yönetimi Backend Servisi:** Kullanıcıların özelleştirilebilir odaklanma modları oluşturmasını ve yönetmesini sağlayan bir arka uç servisi (`FocusModeService`) ve Firebase Cloud Functions API uç noktaları (`createFocusMode`, `getFocusMode`, `updateFocusMode`, `deleteFocusMode`, `listFocusModes`, `setActiveFocusMode`) geliştirildi. `firestore-data-modeling.md` dosyasına `FocusModeDocument` arayüzü eklendi.
+- **Web Arayüzü - Kimlik Doğrulama Entegrasyonu ve Temel Düzen:**
+    - Firebase Auth SDK'sını kullanarak kullanıcı kaydı, girişi, çıkışı ve oturum yönetimini sağlayan `AuthService.ts` oluşturuldu (`aw-server/aw-webui/src/auth/AuthService.ts`).
+    - Giriş (`Login.vue`) ve Kayıt (`Register.vue`) formları için Vue bileşenleri oluşturuldu (`aw-server/aw-webui/src/views/`).
+    - Ana `main.js` dosyası yeni kimlik doğrulama rotalarını içerecek şekilde güncellendi.
+    - `index.html` dosyası Firebase SDK başlatma konfigürasyonuyla güncellendi.
+    - `App.vue` temel bir düzen (dinamik üstbilgi ve içerik için yönlendirici görünümü içeren) içerecek şekilde güncellendi ve kimlik doğrulama durumu değişikliklerini dinleyerek yönlendirme yapması sağlandı.
+    - `Header.vue` kimlik doğrulama durumuna göre farklı gezinme bağlantılarını gösterecek ve bir çıkış düğmesi ekleyecek şekilde güncellendi.
+    - `Home.vue` bileşeni, kimlik doğrulama durumuna göre farklı içerikler gösterecek ve temel bir etkinlik özeti, raporlar ve hedefler için yer tutucular içerecek şekilde güncellendi.
+
+### 🔧 Teknik İyileştirmeler
+- Backend servisleri ve API uç noktaları için Firebase Cloud Functions'ın `HttpsError` kullanımı ile gelişmiş hata yönetimi entegre edildi.
+- Vue.js 3 Composition API ve TypeScript kullanımı ile ön uç bileşenleri daha modern ve tip güvenli hale getirildi.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
+
+---
+
 ## v0.13.5-automation-engine-init (2025-07-11 04:00:39)
 
 ### ✨ Yeni Özellikler
@@ -57,7 +85,7 @@ Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 
 #### 🔄 Geliştirme Döngüsü
 Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
-Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 
 ## v0.13.4-tauri-integration (2025-07-11 03:45:55)
 
@@ -79,7 +107,7 @@ Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 
 #### 🔄 Geliştirme Döngüsü
 Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
-Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 
 ## v0.13.3-firebase-server-integration (2025-07-09 15:48:33)
 

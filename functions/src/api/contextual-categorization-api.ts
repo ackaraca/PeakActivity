@@ -4,22 +4,30 @@ import { ContextualCategorizationService } from '../services/contextual-categori
 const contextualCategorizationService = new ContextualCategorizationService();
 
 export const categorizeContext = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'The function must be called while authenticated.'
+    );
+  }
+
   const { context: textContext, language } = data;
 
   if (typeof textContext !== 'string' || textContext.trim() === '') {
-    return { success: false, error: "Geçersiz giriş: 'context' bir metin olmalı ve boş olmamalı." };
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'The 'context' must be a non-empty string.'
+    );
   }
+  // Dil parametresi isteğe bağlı olduğundan, burada zorunlu kontrol yapmıyoruz.
 
   try {
     const result = contextualCategorizationService.categorizeContext({ context: textContext, language });
-    return { success: true, data: result };
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("Bağlamsal kategorizasyon sırasında hata oluştu:", error.message);
-      return { success: false, error: error.message };
-    } else {
-      console.error("Bilinmeyen bir hata oluştu:", error);
-      return { success: false, error: "Bilinmeyen bir hata oluştu." };
-    }
+    return { status: 'success', data: result };
+  } catch (error: any) {
+    throw new functions.https.HttpsError(
+      'internal',
+      error.message || 'An unknown error occurred.'
+    );
   }
 }); 

@@ -4,27 +4,35 @@ import { FocusQualityScoreService } from '../services/focus-quality-score-servic
 const focusQualityScoreService = new FocusQualityScoreService();
 
 export const calculateFocusQualityScore = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new new functions.https.HttpsError(
+      'unauthenticated',
+      'The function must be called while authenticated.'
+    );
+  }
+
   const { events, user_tz } = data;
 
   if (!events || !Array.isArray(events) || events.length === 0) {
-    return { success: false, error: "Geçersiz giriş: 'events' dizisi gerekli ve boş olmamalı." };
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'The \'events\' array is required and cannot be empty.'
+    );
   }
   if (typeof user_tz !== 'string' || user_tz.trim() === '') {
-    return { success: false, error: "Geçersiz giriş: 'user_tz' geçerli bir zaman dilimi olmalı." };
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'The \'user_tz\' must be a valid timezone string.'
+    );
   }
 
   try {
-    // Gerçek uygulamada events veritabanından alınacak. Şimdilik mock veri kullanılıyor.
-    // const activityEvents = await focusQualityScoreService.getMockActivityEvents();
     const result = focusQualityScoreService.calculateFocusQualityScores(events, user_tz);
-    return { success: true, data: result };
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("Odak kalitesi skoru hesaplama sırasında hata oluştu:", error.message);
-      return { success: false, error: error.message };
-    } else {
-      console.error("Bilinmeyen bir hata oluştu:", error);
-      return { success: false, error: "Bilinmeyen bir hata oluştu." };
-    }
+    return { status: 'success', data: result };
+  } catch (error: any) {
+    throw new functions.https.HttpsError(
+      'internal',
+      error.message || 'An unknown error occurred.'
+    );
   }
 }); 

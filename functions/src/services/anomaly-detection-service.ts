@@ -1,70 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
-// Geçici veri: Gerçek uygulamada Firestore'dan veya başka bir kaynaktan alınacak
-const MOCK_DAILY_TOTALS = [
-  { "date": "2023-01-01", "total_seconds": 28000 },
-  { "date": "2023-01-02", "total_seconds": 29000 },
-  { "date": "2023-01-03", "total_seconds": 27000 },
-  { "date": "2023-01-04", "total_seconds": 35000 },
-  { "date": "2023-01-05", "total_seconds": 26000 },
-  { "date": "2023-01-06", "total_seconds": 28500 },
-  { "date": "2023-01-07", "total_seconds": 27500 },
-  { "date": "2023-01-08", "total_seconds": 29500 },
-  { "date": "2023-01-09", "total_seconds": 26500 },
-  { "date": "2023-01-10", "total_seconds": 28000 },
-  { "date": "2023-01-11", "total_seconds": 29000 },
-  { "date": "2023-01-12", "total_seconds": 27000 },
-  { "date": "2023-01-13", "total_seconds": 35000 },
-  { "date": "2023-01-14", "total_seconds": 26000 },
-  { "date": "2023-01-15", "total_seconds": 28500 },
-  { "date": "2023-01-16", "total_seconds": 27500 },
-  { "date": "2023-01-17", "total_seconds": 29500 },
-  { "date": "2023-01-18", "total_seconds": 26500 },
-  { "date": "2023-01-19", "total_seconds": 28000 },
-  { "date": "2023-01-20", "total_seconds": 29000 },
-  { "date": "2023-01-21", "total_seconds": 27000 },
-  { "date": "2023-01-22", "total_seconds": 35000 },
-  { "date": "2023-01-23", "total_seconds": 26000 },
-  { "date": "2023-01-24", "total_seconds": 28500 },
-  { "date": "2023-01-25", "total_seconds": 27500 },
-  { "date": "2023-01-26", "total_seconds": 29500 },
-  { "date": "2023-01-27", "total_seconds": 26500 },
-  { "date": "2023-01-28", "total_seconds": 28000 },
-  { "date": "2023-01-29", "total_seconds": 29000 },
-  { "date": "2023-01-30", "total_seconds": 27000 },
-  { "date": "2023-01-31", "total_seconds": 35000 },
-  { "date": "2023-02-01", "total_seconds": 26000 },
-  { "date": "2023-02-02", "total_seconds": 28500 },
-  { "date": "2023-02-03", "total_seconds": 27500 },
-  { "date": "2023-02-04", "total_seconds": 29500 },
-  { "date": "2023-02-05", "total_seconds": 26500 },
-  { "date": "2023-02-06", "total_seconds": 28000 },
-  { "date": "2023-02-07", "total_seconds": 29000 },
-  { "date": "2023-02-08", "total_seconds": 27000 },
-  { "date": "2023-02-09", "total_seconds": 35000 },
-  { "date": "2023-02-10", "total_seconds": 26000 },
-  { "date": "2023-02-11", "total_seconds": 28500 },
-  { "date": "2023-02-12", "total_seconds": 27500 },
-  { "date": "2023-02-13", "total_seconds": 29500 },
-  { "date": "2023-02-14", "total_seconds": 26500 },
-  { "date": "2023-02-15", "total_seconds": 28000 },
-  { "date": "2023-02-16", "total_seconds": 29000 },
-  { "date": "2023-02-17", "total_seconds": 27000 },
-  { "date": "2023-02-18", "total_seconds": 35000 },
-  { "date": "2023-02-19", "total_seconds": 26000 },
-  { "date": "2023-02-20", "total_seconds": 28500 },
-  { "date": "2023-02-21", "total_seconds": 27500 },
-  { "date": "2023-02-22", "total_seconds": 29500 },
-  { "date": "2023-02-23", "total_seconds": 26500 },
-  { "date": "2023-02-24", "total_seconds": 28000 },
-  { "date": "2023-02-25", "total_seconds": 29000 },
-  { "date": "2023-02-26", "total_seconds": 27000 },
-  { "date": "2023-02-27", "total_seconds": 35000 },
-  { "date": "2023-02-28", "total_seconds": 26000 }
-];
-
-
 interface DailyTotal {
   date: string;
   total_seconds: number;
@@ -160,19 +96,5 @@ export class AnomalyDetectionService {
       baseline_stddev: parseFloat(stdDev.toFixed(2)),
       explanation: anomalies.length > 0 ? "Belirlenen aktivite verilerinde anormal günler tespit edildi." : "Anormal aktivite verisi tespit edilmedi."
     };
-  }
-
-  /**
-   * Fetches mock daily totals for anomaly detection. In a real application,
-   * this would fetch data from Firestore.
-   * @returns A Promise that resolves to an array of DailyTotal objects.
-   */
-  public async getDailyTotals(): Promise<DailyTotal[]> {
-    // Simulate fetching data from a database
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve(MOCK_DAILY_TOTALS);
-      }, 500); // Simulate network delay
-    });
   }
 } 
