@@ -52,3 +52,18 @@ Firebase Functions now build and lint cleanly; deployment blocker removed.
   - `functions/src/services/report-management-service.ts` dosyasındaki `generateReportData` fonksiyonu AI destekli raporlama ve özetleme için güncellendi.
   - Sahte veri oluşturma kaldırıldı ve gerçek aktivite verilerini çekmek için bir placeholder eklendi.
   - AI tarafından oluşturulacak özet ve metrikler için bir yapı tanımlandı. 
+
+## 2025-07-11 22:25:37 - PeakActivity Geliştirme Güncellemesi
+
+### Yeni Özellikler ve İyileştirmeler:
+- **T048: Etkinlik Verileri için Gerçek Zamanlı Veri Senkronizasyonu (Arka Uç):**
+  - `functions/src/triggers/firestore-triggers.ts` dosyasındaki `onActivityCreated` tetikleyicisi, yeni etkinlikler oluşturulduğunda veya güncellendiğinde bağlı istemcilere bildirim göndermek üzere genişletildi.
+  - `NotificationService.createNotification` kullanılarak yeni etkinlik verilerinin kullanıma hazır olduğunu belirten bildirimler eklendi. 
+
+## 2025-07-11 22:27:37 - PeakActivity Geliştirme Güncellemesi
+
+### Yeni Özellikler ve İyileştirmeler:
+- **T049: Etkinlik Verileri için Gerçek Zamanlı Veri Senkronizasyonu (Ön Uç):**
+  - `aw-server/aw-webui/src/stores/activity.ts` dosyası, Firebase Firestore `onSnapshot` dinleyicisini kullanarak etkinlik verilerini gerçek zamanlı olarak senkronize edecek şekilde güncellendi.
+  - Mağaza durumu (state) Firebase'den gelen güncellemelerle otomatik olarak yenilenir.
+  - `Activity.vue` gibi ilgili ön uç bileşenlerinin, Pinia reaktivitesi sayesinde otomatik olarak güncellemeleri yansıttığı doğrulandı. 
