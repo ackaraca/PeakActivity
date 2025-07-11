@@ -1,0 +1,24 @@
+# ActivityWatch Component Relationships
+
+## Direct Component Relationships
+
+aw-qt -> aw-server
+aw-qt -> aw-notify
+aw-qt -> aw-watcher-window
+aw-qt -> aw-watcher-afk
+aw-notify -> aw-server
+aw-watcher-window -> aw-server
+aw-watcher-afk -> aw-server
+aw-watcher-web -> aw-server
+aw-server -> aw-webui
+aw-webui -> aw-server
+aw-server -> aw-sync
+aw-sync -> Sync folder
+Sync folder -> aw-sync
+Browser -> aw-watcher-web
+
+## Functional Relationships
+
+aw-watcher-window -> Active window -> aw-server
+aw-watcher-afk -> AFK status -> aw-server
+aw-watcher-web -> Active tab -> aw-server 

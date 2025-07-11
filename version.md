@@ -1,3 +1,80 @@
+# PeakActivity - Versiyon Geçmişi
+
+## v0.1.0 - 2025-07-09 00:10:34
+
+### 🎉 İlk Kurulum (Project Bootstrap)
+
+#### ✅ Tamamlanan İşler
+- **Proje yapısı oluşturuldu**
+  - Ana dizin yapısı kuruldu
+  - `.cursor/rules/` dizini ve geliştirme kuralları
+  - README.md ve version.md dosyaları
+
+#### 📋 Oluşturulan Kural Dosyaları
+- `general-coding-standards.mdc` - Genel kodlama standartları ve isimlendirme kuralları
+- `tauri-development.mdc` - Tauri özel geliştirme kuralları ve IPC standartları
+- `vuejs-typescript.mdc` - Vue.js 3 Composition API ve TypeScript kuralları
+- `firebase-development.mdc` - Firebase Cloud Functions ve güvenlik kuralları
+- `firestore-data-modeling.mdc` - Kapsamlı Firestore veri modeli ve şemaları
+
+#### 🏗️ Mimari Kararlar
+- **Hibrit Mimari**: Yerel veri toplama + Firebase bulut işleme
+- **Frontend Stack**: Tauri (Desktop) + Vue.js 3 (Web)
+- **Backend Stack**: Firebase Cloud Functions (Python)
+- **Database**: Cloud Firestore
+- **Authentication**: Firebase Auth
+
+#### 📊 Teknoloji Yığını Belirlendi
+- **Desktop**: Tauri + Vue.js 3 + TypeScript
+- **Web Panel**: Vue.js 3 + Composition API + TypeScript
+- **Cloud**: Firebase ecosystem (Functions, Firestore, Auth, Hosting)
+- **Development**: Cursor IDE + ESLint + Prettier + Vitest
+
+#### 🎯 Sonraki Adımlar (v0.2.0 için)
+- Firebase projesinin oluşturulması
+- Desktop app temel yapısının kurulması
+- Web panel başlangıç geliştirmesi
+- Cloud Functions temel yapısının oluşturulması
+
+#### 📈 Hedef Özellikler
+- **Faz 1**: Temel aktivite takibi ve raporlama
+- **Faz 2**: AI destekli içgörüler ve öneriler
+- **Faz 3**: Otomasyon kuralları ve akıllı bildirimler
+- **Faz 4**: Takım özellikleri ve işbirliği araçları
+
+---
+
+### 📝 Notlar
+- Proje ActivityWatch'dan esinlenerek tamamen yeniden tasarlandı
+- SaaS modeli için abonelik katmanları planlandı (Free, Premium, Pro)
+- Gizlilik odaklı yaklaşım benimsenip yerel işleme öncelendirildi
+- Türkçe açıklamalar + İngilizce kod standartları uygulandı
+
+### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **1. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
+
+## v0.1.1 - 2025-07-09 14:32:07
+
+### 🚀 İlk Analiz ve Yapılandırma
+
+#### ✅ Tamamlanan İşler
+- **Proje Dosyaları ve Yapısı Analizi**
+  - Tüm ana dizin `.md` dosyaları (README.md, CONTRIBUTING.md, LICENSE.txt, SECURITY.md, CITATION.cff, ai-implementation-notes.md, ai-features-plan.md, version-peakactivity.md, README-peakactivity.md) okundu ve içeriği analiz edildi.
+  - Proje mimarisi ve AI özellik planları detaylıca incelendi.
+- **Git Submodule Entegrasyonu**
+  - `git submodule update --init --recursive` komutuyla `aw-*` dizinleri altındaki tüm submodule'lar başarıyla indirildi. Bu, kod analizi için gerekli ortamı sağladı.
+- **`aw-client` Modül Analizi**
+  - `aw-client/aw_client/` dizini altındaki Python kod dosyaları (`queries.py`, `singleinstance.py`, `client.py`, `config.py`, `py.typed`, `classes.py`, `cli.py`, `__init__.py`, `__main__.py`) ayrıntılı olarak incelendi.
+  - `aw-client` modülünün temel işlevleri (API etkileşimi, olay yönetimi, heartbeat mekanizması, kova yönetimi, veri sorgulama, ayarlar yönetimi, tekil örnekleme ve CLI araçları) çıkarıldı.
+- **Proje Özeti Raporu Oluşturuldu**
+  - `project_summary.md` adında yeni bir Markdown dosyası oluşturuldu. Bu dosya, projenin genel mimarisi, ana bileşenleri, mevcut ve planlanan AI özellikleri, güvenlik ve gizlilik yaklaşımları, performans metrikleri, geliştirme kuralları ve özellik katmanlarını detaylı bir şekilde özetliyor.
+  - Sonraki adımlar için somut öneriler sunuldu.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **2. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
+
 # ActivityWatch Geliştirme Sürüm Kayıtları
 
 ## v0.13.3-firebase-server-integration (2025-07-09 15:48:33)

@@ -38,7 +38,6 @@ dmyp.json
 # Cursor IDE Rules - GitHub'da paylaşılmasın
 .cursor/
 .cursor/rules/
-*.mdc
 
 # PeakActivity Development Files
 README-peakactivity.md
