@@ -1,15 +1,41 @@
 # PeakActivity - Versiyon Geçmişi
 
-## Sürüm Güncellemesi - 2025-07-11 18:09:59
+## v0.13.16-firebase-backend-optimization (2025-07-11 17:06:31)
 
-### Firebase Fonksiyonları Dağıtımı ve Uyumluluk İyileştirmeleri:
-- `@tensorflow/tfjs-node` bağımlılığı, Firebase Fonksiyonları ortamıyla daha iyi uyum sağlaması için `@tensorflow/tfjs` olarak güncellendi.
-- İlgili import yolları (`functions/src/services/task-completion-prediction-service.ts` içinde) düzeltildi.
-- Firebase fonksiyonları buluta başarıyla dağıtıldı.
+### 🚀 Firebase Backend Kod ve Maliyet Optimizasyonları
+- **Makine Öğrenimi ve AI:**
+    - `task-completion-prediction-service.ts` dosyasına TensorFlow.js ile gerçek ML çıkarım mantığı eklendi. Aktivite verileriyle çalışan basit bir yapay sinir ağı modeli entegre edildi.
+    - `ai-insight-service.ts` dosyasına Google Cloud Natural Language API ile duygu analizi ve varlık çıkarma özellikleri eklendi.
+- **Hedef Takibi ve Güncelleme:**
+    - `goal-service.ts` dosyasındaki `checkGoalProgress` metodu, aktiviteye göre hedef ilerlemesini otomatik güncelleyecek şekilde implemente edildi. Seri (streak) ve hedef türüne göre ilerleme yönetimi sağlandı.
+- **Takvim Senkronizasyonu:**
+    - `calendar-sync-service.ts` dosyasında Google Takvim'den silinen etkinlikler için "soft delete" (deleted: true) stratejisi uygulandı. Yeni/güncellenen etkinlikler için `deleted: false` flag'i eklendi.
+- **Otomasyon Kuralları ve Bildirimler:**
+    - `automation-rule-service.ts` dosyasındaki `executeRuleAction` metodu, kural tipine göre (bildirim, uygulama engelleme, mola önerme, odak modu, ruh hali, bağlam istemi) eylemleri tetikleyebilecek şekilde geliştirildi. Bildirimler için `AINotificationService` ile FCM entegrasyonu sağlandı.
+- **Davranışsal Trend Analizi:**
+    - `index.ts` dosyasındaki `analyzeBehavioralTrends` fonksiyonunda haftalık desen/mevsimsellik tespiti daha genel ve sağlam bir algoritma ile güncellendi. Cuma günü özelinden çıkarılıp tüm haftaya yayılan sapma analizi eklendi.
+- **Topluluk Kuralları:**
+    - `applyCommunityRules` fonksiyonuna `CommunityRulesService` entegrasyonu tamamlandı.
 
-### Web Arayüzü (aw-server/aw-webui) Vue 2 Uyumluluğu ve Hata Düzeltmeleri:
-- Tüm `<script setup>` kullanımları (Vue 3 sözdizimi), Vue 2 Seçenekler API'sine (`export default defineComponent`) dönüştürüldü. Bu, `App.vue`, `Login.vue`, `Register.vue`, `Header.vue`, `AIInsightsDisplay.vue`, `AutomationRules.vue`, `CommunityRules.vue`, `ContextualCategorization.vue`, `Goals.vue`, `ProjectPrediction.vue` ve `Reports.vue` dosyalarını etkiledi.
-- `useRouter` kullanımları `this.$router` ile değiştirilerek Vue Router hataları giderildi.
-- Firebase istemci SDK'sının başlatılması ve `auth` ile `functions` servislerinin yönetimi için `aw-server/aw-webui/src/firebase.ts` adında merkezi bir dosya oluşturuldu.
-- Kimlik doğrulama durumu yönetimi için `aw-server/aw-webui/src/stores/auth.ts` adında yeni bir Pinia store eklendi ve tüm ilgili bileşenler bu store'u kullanacak şekilde güncellendi.
-- `AWClient` üzerinde `post` metodunun bulunmaması sorununu gidermek için `aw-server/aw-webui/src/globals.d.ts` dosyasına `post` metodu için tip tanımı eklendi. 
+### 🛠️ Teknik İyileştirmeler
+- Kodun tamamında gereksiz importlar ve tekrar eden işlemler kaldırıldı.
+- API istemcileri ve ML modelleri için kullanıcı bazında önbellekleme ve yeniden kullanılabilirlik sağlandı.
+- Hata yönetimi ve loglama iyileştirildi.
+- Linter hataları giderildi, fonksiyonel ve okunabilir kod yapısı korundu.
+
+### ✅ Sonuç
+Tüm Firebase backend fonksiyonları dağıtıma hazır, kod ve maliyet açısından optimize edildi. Kalan TODO'lar frontend veya Rust backend ile ilgilidir.
+
+---
+
+## v0.13.15-bugfixes (2025-07-11 15:22:36)
+
+### 🐛 Bug Fixes
+- Cross-platform `lint` script updated to `eslint .` to resolve ENOENT during Firebase predeploy.
+- Fixed all apostrophe-related TypeScript compile errors in Google Calendar, Trello/Jira and Task Completion Prediction APIs.
+- Updated notification typing to support `ai_recommendation` and corrected field names.
+- Added ambient type declarations for `jira-client` and `trello.js` to silence TS7053.
+- Ensured calendar sync handles undefined event arrays.
+
+### ✅ Status
+Firebase Functions now build and lint cleanly; deployment blocker removed. 
