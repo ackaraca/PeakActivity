@@ -67,3 +67,10 @@ Firebase Functions now build and lint cleanly; deployment blocker removed.
   - `aw-server/aw-webui/src/stores/activity.ts` dosyası, Firebase Firestore `onSnapshot` dinleyicisini kullanarak etkinlik verilerini gerçek zamanlı olarak senkronize edecek şekilde güncellendi.
   - Mağaza durumu (state) Firebase'den gelen güncellemelerle otomatik olarak yenilenir.
   - `Activity.vue` gibi ilgili ön uç bileşenlerinin, Pinia reaktivitesi sayesinde otomatik olarak güncellemeleri yansıttığı doğrulandı. 
+
+## 2025-07-11 22:28:41 - PeakActivity Geliştirme Güncellemesi
+
+### Yeni Özellikler ve İyileştirmeler:
+- **T050: Gelişmiş Anomali Tespit Modeli Geliştirme (Arka Uç):**
+  - `functions/src/services/anomaly-detection-service.ts` dosyasındaki `detectAnomalies` fonksiyonu, gelecekte daha gelişmiş bir makine öğrenimi (ML) modeli entegrasyonu için bir yer tutucu ve güncellenmiş dönüş türleri ile güncellendi.
+  - Mevcut istatistiksel mantık korunarak anomali skoru, sapma yüzdesi ve açıklama alanları eklendi. Model versiyonu bilgisi eklendi. 
