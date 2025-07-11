@@ -354,3 +354,6 @@ Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 **Toplam Dosya:** 2 MD dokümanı  
 **Satır Sayısı:** ~1200+ satır kapsamlı dokümantasyon  
 **Kapsam:** Core integration analysis, Firebase architecture design, performance optimization 
+
+### v0.13.6-documentation-export (2025-07-11 12:57:59)
+- Sohbet özetini ve teknik detaylarını içeren `chat-summary.md` ve `chat-details.md` dosyaları oluşturuldu. 
