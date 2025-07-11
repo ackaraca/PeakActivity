@@ -263,3 +263,25 @@ Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 #### 🔄 Geliştirme Döngüsü
 Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
 Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
+
+## v0.13.4-tauri-integration (2025-07-11 03:45:55)
+
+### ✨ Yeni Özellikler
+- **aw-qt Tauri Entegrasyonu Geliştirildi**
+  - Hedef yönetimi için Tauri komutları (`create_goal_command`, `get_all_goals_command`, `update_goal_command`, `delete_goal_command`) güncellendi ve genişletildi.
+  - Tauri bildirim API'si entegre edildi.
+  - Hedef oluşturma ve güncelleme işlemleri için sistem bildirimleri eklendi.
+  - Genel bildirim göndermek için yeni `send_notification_command` tanımlandı.
+  - SQLite veritabanı ile yerel hedef verisi yönetimi sağlandı.
+
+### 🔧 Teknik İyileştirmeler
+- `aw-qt/src-tauri/src/commands.rs` dosyasına bildirim işlevselliği eklendi.
+- `aw-qt/src-tauri/src/main.rs` dosyasındaki komut işleyicisine yeni Tauri komutları dahil edildi.
+- Veritabanı başlatma ve sorgulama hataları için daha açıklayıcı hata mesajları eklendi.
+
+### 📚 Dokümantasyon Güncellemesi
+- `checklist.md` dosyasındaki "3.1 Hedef Takibi ve İlerleme Durumu" başlığı altındaki "Tauri Entegrasyonu" maddesi tamamlandı olarak işaretlendi.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 

@@ -4,6 +4,17 @@ import * as admin from "firebase-admin";
 import { Request, Response } from "express";
 import { linearRegression, linearRegressionLine, mean, standardDeviation } from "simple-statistics";
 
+import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { setGlobalOptions } from 'firebase-functions/v2/options';
+
+import * as goalApi from './api/goal-api';
+import * as firestoreTriggers from './triggers/firestore-triggers';
+
+// Global settings
+setGlobalOptions({
+  // ... existing code ...
+});
+
 interface Event {
   timestamp_start: string;
   timestamp_end: string;
