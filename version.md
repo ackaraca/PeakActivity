@@ -90,3 +90,11 @@ Firebase Functions now build and lint cleanly; deployment blocker removed.
   - `RealtimeBehavioralPattern` adında yeni bir arayüz tanımlanarak anlık davranışsal örüntüler için yapı sağlandı.
   - `functions/src/api/behavioral-analysis-api.ts` ve `functions/src/index.ts` dosyaları, yeni API endpoint'ini dışa aktaracak şekilde güncellendi.
   - `functions/src/types/activity-event.d.ts` dosyasına `id` alanı eklendi. 
+
+## 2025-07-11 22:40:14 - PeakActivity Geliştirme Güncellemesi
+
+### Yeni Özellikler ve İyileştirmeler:
+- **T053: Gerçek Zamanlı Davranışsal Örüntü Tanıma (Ön Uç):**
+  - `aw-server/aw-webui/src/views/ai-features/BehavioralTrendsView.vue` dosyası, Firebase Firestore `onSnapshot` dinleyicisini kullanarak gerçek zamanlı davranışsal örüntüleri dinleyecek ve görüntüleyecek şekilde güncellendi.
+  - Arka uçta tanımlanan `RealtimeBehavioralPattern` arayüzüne uygun olarak, örüntü türü, açıklama, güven skoru ve model versiyonu gibi detaylar kullanıcı arayüzünde gösterildi.
+  - Tüm yeni kullanıcı arayüzü metinleri Türkçeleştirildi. 
