@@ -237,10 +237,10 @@
   - Tamamlandı: 2025-07-11 03:42:45
   
 - [x] **Tauri Entegrasyonu**
-  - [ ] Yerel hedef verisi senkronizasyonu
-  - [ ] Sistem bildirimleri (hedef hatırlatmaları)
-  - [ ] Offline hedef takibi
-  - [ ] Hedef başarı bildirimleri (Windows toast)
+  - [x] Yerel hedef verisi senkronizasyonu
+  - [x] Sistem bildirimleri (hedef hatırlatmaları)
+  - [x] Offline hedef takibi
+  - [x] Hedef başarı bildirimleri (Windows toast)
   - Tamamlandı: 2025-07-11 03:45:55
 
 ### 3.2 Akıllı Kurallar ve Otomasyon Motoru (IFTTT Tarzı)
