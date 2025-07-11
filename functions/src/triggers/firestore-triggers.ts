@@ -17,6 +17,14 @@ export const onActivityCreated = onDocumentCreated(
     const activityData = snapshot.data();
     
     try {
+      // Yeni etkinlik oluşturulduğunda bildirim gönder
+      await new NotificationService().createNotification(userId, {
+        title: 'Yeni Aktivite Eklendi',
+        message: `Yeni bir aktivite kaydedildi: ${activityData.title || 'Bilinmeyen Aktivite'}.`, // Aktivite başlığına göre mesajı kişiselleştir
+        type: 'info',
+        related_entity_id: activityId,
+      });
+
       // 1. Update focus score (AnalyticsService kaldırıldı, ilgili servis çağrısı gerekiyorsa buraya eklenecek)
       // await AnalyticsService.updateUserFocusMetrics(userId, activityData);
       

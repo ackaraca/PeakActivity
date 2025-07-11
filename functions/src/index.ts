@@ -9,6 +9,7 @@ import { setGlobalOptions } from 'firebase-functions/v2/options';
 
 import * as goalApi from './api/goal-api';
 import * as firestoreTriggers from './triggers/firestore-triggers';
+import { firestoreDailyBackup } from './triggers/backup-triggers';
 import { detectAnomalies } from './api/anomaly-detection-api';
 import { autoCategorize } from './api/auto-categorization-api';
 import { analyzeBehavioralPatterns } from './api/behavioral-analysis-api';
@@ -25,10 +26,7 @@ import { createGoal, getGoal, updateGoal, deleteGoal, listGoals } from "./api/go
 import { createReport, getReport, updateReport, deleteReport, listReports, generateReportData } from "./api/report-management-api";
 import { createCustomEvent, getCustomEvent, updateCustomEvent, deleteCustomEvent, listCustomEvents } from "./api/custom-event-api";
 import { generateInsight, listInsights, getInsight, deleteInsight } from "./api/insight-generation-api";
-import { googleCalendarAuth, googleCalendarOAuthCallback } from "./api/google-calendar-api";
-import { listGoogleCalendarEvents } from "./api/google-calendar-api";
-import { createGoogleCalendarEvent, updateGoogleCalendarEvent } from "./api/google-calendar-api";
-import { getGoogleCalendarFreeBusy } from "./api/google-calendar-api";
+import { getGoogleCalendarEvents, createGoogleCalendarEvent, updateGoogleCalendarEvent, deleteGoogleCalendarEvent, listGoogleCalendars } from "./api/google-calendar-api";
 import { createAutomaticCalendarEvents } from "./api/automatic-event-api";
 import { getTrelloTaskStatus, getJiraTaskStatus } from "./api/trello-jira-api";
 import { updateTrelloTaskStatus, updateJiraTaskStatus } from "./api/trello-jira-api";
@@ -418,6 +416,9 @@ export { createGoal, getGoal, updateGoal, deleteGoal, listGoals };
 export { createReport, getReport, updateReport, deleteReport, listReports, generateReportData } from "./api/report-management-api";
 export { createCustomEvent, getCustomEvent, updateCustomEvent, deleteCustomEvent, listCustomEvents } from "./api/custom-event-api";
 export { generateInsight, listInsights, getInsight, deleteInsight } from "./api/insight-generation-api";
+export { getGoogleCalendarEvents, createGoogleCalendarEvent, updateGoogleCalendarEvent, deleteGoogleCalendarEvent, listGoogleCalendars } from "./api/google-calendar-api";
+export { createAutomaticCalendarEvents } from "./api/automatic-event-api";
+export { firestoreDailyBackup } from './triggers/backup-triggers';
 export { createNotification, getNotification, updateNotification, deleteNotification, listNotifications } from "./api/notification-api";
 export { createFocusMode, getFocusMode, updateFocusMode, deleteFocusMode, listFocusModes, setActiveFocusMode } from "./api/focus-mode-api";
 

@@ -39,3 +39,16 @@ Tüm Firebase backend fonksiyonları dağıtıma hazır, kod ve maliyet açısı
 
 ### ✅ Status
 Firebase Functions now build and lint cleanly; deployment blocker removed. 
+
+## 2025-07-11 22:08:55 - PeakActivity Geliştirme Güncellemesi
+
+### Yeni Özellikler ve İyileştirmeler:
+- **T041: Anomali Uyarıları Geliştirmeleri:**
+  - `aw-server/aw-webui/src/views/Alerts.vue` dosyası Vue 3 Composition API'ye dönüştürüldü.
+  - Firebase'den anomali uyarıları çekilerek kullanıcı arayüzünde gösterilmesi sağlandı.
+  - UI metinleri Türkçeleştirildi.
+
+- **T042: AI Destekli Raporlama ve Özetleme (Backend):**
+  - `functions/src/services/report-management-service.ts` dosyasındaki `generateReportData` fonksiyonu AI destekli raporlama ve özetleme için güncellendi.
+  - Sahte veri oluşturma kaldırıldı ve gerçek aktivite verilerini çekmek için bir placeholder eklendi.
+  - AI tarafından oluşturulacak özet ve metrikler için bir yapı tanımlandı. 

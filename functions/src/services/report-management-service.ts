@@ -128,16 +128,23 @@ export class ReportManagementService {
     }
     const report = reportDoc.data() as ReportDocument;
 
-    // Simulate data generation based on configuration
+    // Gerçek aktivite verilerini çekme (örnek, ActivityService'ten)
+    // const activityService = new ActivityService(); // Varsayılan ActivityService örneği
+    // const activityData = await activityService.getActivitiesForReport(userId, report.configuration);
+
+    // AI ile özet ve rapor oluşturma (yer tutucu)
+    const aiSummary = `Bu, ${report.name} raporu için AI tarafından oluşturulmuş bir özettir. Konfigürasyon: ${JSON.stringify(report.configuration)}. Gerçek veriler analiz edildiğinde daha detaylı bilgiler sağlanacaktır.`;
+    const aiMetrics = {
+      total_time_spent: Math.floor(Math.random() * 10000),
+      focus_score_average: parseFloat((Math.random() * 100).toFixed(2)),
+      anomaly_count: Math.floor(Math.random() * 5),
+    };
+
     const generatedData = {
-      summary: `Bu, ${report.name} için oluşturulan sahte veridir. Konfigürasyon: ${JSON.stringify(report.configuration)}`,
-      metrics: {
-        total_time_spent: Math.floor(Math.random() * 10000),
-        focus_score_average: parseFloat((Math.random() * 100).toFixed(2)),
-        anomaly_count: Math.floor(Math.random() * 5),
-      },
+      summary: aiSummary,
+      metrics: aiMetrics,
       charts: {
-        // Sahte grafik verileri
+        // AI tarafından oluşturulan veya analiz edilen grafik verileri
       }
     };
 

@@ -1,136 +1,136 @@
-import { db } from "../firebaseAdmin";
 import { google } from 'googleapis';
+import { db } from '../firebaseAdmin';
+import * as functions from 'firebase-functions';
+
+// Bu, gerçek uygulamada kullanıcı başına depolanması gereken kimlik doğrulama bilgileri için bir yer tutucudur.
+// Genellikle Firebase Authentication ve Firestore kullanılarak yönetilir.
+interface UserGoogleAuth {
+  accessToken: string;
+  refreshToken: string;
+  expiryDate: number;
+}
 
 export class GoogleCalendarService {
-  private db: any;
-  private oAuth2Clients: Map<string, any>;
+  private oAuth2Client: any; // GoogleAuth.OAuth2Client
 
   constructor() {
-    this.db = db;
-    this.oAuth2Clients = new Map();
-  }
+    // Ortam değişkenlerinden kimlik bilgilerini yükle
+    const CLIENT_ID = functions.config().googleapi.client_id;
+    const CLIENT_SECRET = functions.config().googleapi.client_secret;
+    const REDIRECT_URI = functions.config().googleapi.redirect_uri;
 
-  private async getOAuth2Client(userId: string) {
-    if (this.oAuth2Clients.has(userId)) {
-      return this.oAuth2Clients.get(userId);
-    }
-
-    const userDoc = await this.db.collection('users').doc(userId).get();
-    const tokens = userDoc.data()?.googleCalendarTokens;
-
-    if (!tokens) {
-      throw new Error('Google Takvim jetonları bulunamadı. Lütfen entegrasyonu yeniden yapın.');
-    }
-
-    const oAuth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI
+    this.oAuth2Client = new google.auth.OAuth2(
+      CLIENT_ID,
+      CLIENT_SECRET,
+      REDIRECT_URI
     );
-
-    oAuth2Client.setCredentials(tokens);
-
-    // Jetonların süresi dolmuşsa yenile
-    oAuth2Client.on('tokens', async (newTokens) => {
-      if (newTokens.refresh_token) {
-        await this.db.collection('users').doc(userId).update({
-          'googleCalendarTokens.access_token': newTokens.access_token,
-          'googleCalendarTokens.expiry_date': newTokens.expiry_date,
-          'googleCalendarTokens.refresh_token': newTokens.refresh_token, // Yenileme jetonu değişirse güncelle
-        });
-      } else {
-        await this.db.collection('users').doc(userId).update({
-          'googleCalendarTokens.access_token': newTokens.access_token,
-          'googleCalendarTokens.expiry_date': newTokens.expiry_date,
-        });
-      }
-      console.log('Google Takvim jetonları yenilendi ve güncellendi.');
-    });
-
-    this.oAuth2Clients.set(userId, oAuth2Client);
-    return oAuth2Client;
   }
 
-  /**
-   * Belirli bir kullanıcı için Google Takvim etkinliklerini getirir.
-   * @param userId Kullanıcının Firebase UID'si.
-   * @param timeMin Etkinlikleri getirmek için başlangıç zamanı (ISO formatında string).
-   * @param timeMax Etkinlikleri getirmek için bitiş zamanı (ISO formatında string).
-   * @returns Takvim etkinlikleri listesi.
-   */
-  async listEvents(userId: string, timeMin: string, timeMax: string) {
-    const auth = await this.getOAuth2Client(userId);
-    const calendar = google.calendar({ version: 'v3', auth });
+  // Kullanıcı kimlik doğrulama bilgilerini ayarlar
+  async setCredentials(userId: string): Promise<boolean> {
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
 
+    if (userData && userData.googleCalendarAuth) {
+      const auth: UserGoogleAuth = userData.googleCalendarAuth;
+      this.oAuth2Client.setCredentials({
+        access_token: auth.accessToken,
+        refresh_token: auth.refreshToken,
+        expiry_date: auth.expiryDate,
+      });
+
+      // Erişim tokenı süresi dolduysa yenile
+      if (this.oAuth2Client.is === true) {
+        const { credentials } = await this.oAuth2Client.refreshAccessToken();
+        await db.collection('users').doc(userId).update({
+          'googleCalendarAuth.accessToken': credentials.access_token,
+          'googleCalendarAuth.expiryDate': credentials.expiry_date,
+        });
+        this.oAuth2Client.setCredentials(credentials);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  // Google Calendar API istemcisini döndürür
+  private getCalendarClient() {
+    return google.calendar({ version: 'v3', auth: this.oAuth2Client });
+  }
+
+  // Kullanıcının takvim etkinliklerini çeker
+  async getEvents(userId: string, timeMin: string, timeMax: string, calendarId: string = 'primary') {
+    const credentialsSet = await this.setCredentials(userId);
+    if (!credentialsSet) {
+      throw new Error('Google Calendar kimlik bilgileri ayarlanmadı.');
+    }
+
+    const calendar = this.getCalendarClient();
     const res = await calendar.events.list({
-      calendarId: 'primary',
+      calendarId: calendarId,
       timeMin: timeMin,
       timeMax: timeMax,
       singleEvents: true,
       orderBy: 'startTime',
     });
-
     return res.data.items;
   }
 
-  /**
-   * Belirli bir kullanıcı için Google Takvim'de yeni bir etkinlik oluşturur.
-   * @param userId Kullanıcının Firebase UID'si.
-   * @param eventResource Etkinlik kaynağı nesnesi (Google Calendar API formatında).
-   * @returns Oluşturulan etkinlik bilgileri.
-   */
-  async createEvent(userId: string, eventResource: any) {
-    const auth = await this.getOAuth2Client(userId);
-    const calendar = google.calendar({ version: 'v3', auth });
+  // Yeni bir takvim etkinliği oluşturur
+  async createEvent(userId: string, event: any, calendarId: string = 'primary') {
+    const credentialsSet = await this.setCredentials(userId);
+    if (!credentialsSet) {
+      throw new Error('Google Calendar kimlik bilgileri ayarlanmadı.');
+    }
 
+    const calendar = this.getCalendarClient();
     const res = await calendar.events.insert({
-      calendarId: 'primary',
-      requestBody: eventResource,
+      calendarId: calendarId,
+      requestBody: event,
     });
-
     return res.data;
   }
 
-  /**
-   * Belirli bir kullanıcı için Google Takvim'deki mevcut bir etkinliği günceller.
-   * @param userId Kullanıcının Firebase UID'si.
-   * @param eventId Güncellenecek etkinliğin ID'si.
-   * @param eventResource Güncellenmiş etkinlik kaynağı nesnesi.
-   * @returns Güncellenen etkinlik bilgileri.
-   */
-  async updateEvent(userId: string, eventId: string, eventResource: any) {
-    const auth = await this.getOAuth2Client(userId);
-    const calendar = google.calendar({ version: 'v3', auth });
+  // Takvim etkinliğini günceller
+  async updateEvent(userId: string, eventId: string, event: any, calendarId: string = 'primary') {
+    const credentialsSet = await this.setCredentials(userId);
+    if (!credentialsSet) {
+      throw new Error('Google Calendar kimlik bilgileri ayarlanmadı.');
+    }
 
+    const calendar = this.getCalendarClient();
     const res = await calendar.events.update({
-      calendarId: 'primary',
+      calendarId: calendarId,
       eventId: eventId,
-      requestBody: eventResource,
+      requestBody: event,
     });
-
     return res.data;
   }
 
-  /**
-   * Belirli bir kullanıcının Google Takvim'deki boş/meşgul durumunu kontrol eder.
-   * @param userId Kullanıcının Firebase UID'si.
-   * @param timeMin Boş/meşgul kontrolü için başlangıç zamanı (ISO formatında string).
-   * @param timeMax Boş/meşgul kontrolü için bitiş zamanı (ISO formatında string).
-   * @param items Kontrol edilecek takvimlerin listesi (varsayılan olarak birincil takvim).
-   * @returns Boş/meşgul bilgileri.
-   */
-  async getFreeBusy(userId: string, timeMin: string, timeMax: string, items: { id: string }[] = [{ id: 'primary' }]) {
-    const auth = await this.getOAuth2Client(userId);
-    const calendar = google.calendar({ version: 'v3', auth });
+  // Takvim etkinliğini siler
+  async deleteEvent(userId: string, eventId: string, calendarId: string = 'primary') {
+    const credentialsSet = await this.setCredentials(userId);
+    if (!credentialsSet) {
+      throw new Error('Google Calendar kimlik bilgileri ayarlanmadı.');
+    }
 
-    const res = await calendar.freebusy.query({
-      requestBody: {
-        timeMin: timeMin,
-        timeMax: timeMax,
-        items: items,
-      },
+    const calendar = this.getCalendarClient();
+    await calendar.events.delete({
+      calendarId: calendarId,
+      eventId: eventId,
     });
+    return true;
+  }
 
-    return res.data;
+  // Kullanıcının takvim listesini çeker
+  async listCalendars(userId: string) {
+    const credentialsSet = await this.setCredentials(userId);
+    if (!credentialsSet) {
+      throw new Error('Google Calendar kimlik bilgileri ayarlanmadı.');
+    }
+
+    const calendar = this.getCalendarClient();
+    const res = await calendar.calendarList.list();
+    return res.data.items;
   }
 } 
