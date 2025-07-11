@@ -1,5 +1,36 @@
 # PeakActivity - Versiyon Geçmişi
 
+## v0.13.7-webapp-improvements-part2 (2025-07-11 04:30:47)
+
+### ✨ Yeni Özellikler
+- **Web Arayüzü - Kullanıcı Etkinlik Verilerini Görüntüleme ve Yönetme:**
+    - Kullanıcının günlük etkinliklerini (`ActivityService` ve `ActivityAPI` kullanarak) çeken ve görselleştiren (`ActivityChart.vue` ve `ActivityTable.vue`) bileşenler geliştirildi.
+    - Etkinlik verilerini filtreleme, sıralama ve arama yetenekleri eklendi.
+    - Belirli etkinlikleri düzenleme veya silme işlevselliği entegre edildi.
+- **Web Arayüzü - Anomali Tespiti ve Görselleştirme:**
+    - Anomali tespiti API'lerinden (`AnomalyDetectionAPI`) veri çeken ve görselleştiren (`AnomalyDetectionDisplay.vue`) bileşenler güncellendi.
+    - Tespit edilen anomalileri vurgulayan ve detaylı bilgi sağlayan UI öğeleri eklendi.
+- **Web Arayüzü - Otomatik Kategorizasyon ve Etiketleme Yönetimi:**
+    - Otomatik kategorizasyon API'lerinden (`AutoCategorizationAPI`) veri çeken ve kullanıcının kategori kurallarını yönetmesini sağlayan (`AutoCategorizationDisplay.vue`) bileşenler güncellendi.
+    - Kullanıcıların yeni kurallar eklemesine, mevcut kuralları düzenlemesine veya silmesine olanak tanıyan formlar ve tablolar entegre edildi.
+- **Web Arayüzü - Davranışsal Desenler ve Eğilim Analizi Görselleştirmesi:**
+    - Davranışsal analiz API'lerinden (`BehavioralAnalysisAPI`) veri çeken ve kullanıcı davranışlarındaki trendleri görselleştiren (`BehavioralTrendsDisplay.vue`) bileşenler güncellendi.
+    - Haftalık/aylık trendleri, üretkenlik değişimlerini ve odaklanma sürelerini gösteren grafikler eklendi.
+- **Web Arayüzü - Odak Kalitesi Puanı Görselleştirmesi:**
+    - Odak kalitesi puanı API'lerinden (`FocusQualityScoreAPI`) veri çeken ve kullanıcının odaklanma performansını görselleştiren (`FocusQualityScoreDisplay.vue`) bileşenler güncellendi.
+    - Günlük, haftalık ve aylık odak puanlarını gösteren grafikler ve performans metrikleri eklendi.
+
+### 🔧 Teknik İyileştirmeler
+- Mevcut Vue bileşenleri, yeni eklenen API uç noktalarını kullanarak veri çekme ve güncelleme işlemleri için yeniden düzenlendi.
+- Vuex veya Pinia gibi merkezi durum yönetimi çözümleri, uygulama genelindeki verileri (örneğin, kimlik doğrulama durumu, kullanıcı etkinlikleri) yönetmek için entegre edildi. (Mevcut `aw-webui/src/stores` kullanıldı.)
+- Kullanıcı arayüzü, Firebase Authentication durumuyla senkronize edilerek yalnızca yetkili kullanıcıların belirli özelliklere erişimi sağlandı.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **1. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
+
+---
+
 ## v0.13.6-backend-ui-integration-part1 (2025-07-11 04:29:15)
 
 ### ✨ Yeni Özellikler
