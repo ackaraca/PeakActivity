@@ -1,5 +1,26 @@
 # PeakActivity - Versiyon Geçmişi
 
+## v0.13.11-checklist-refinement-and-ai-status (2025-07-11 13:06:25)
+
+### ✨ Yeni Özellikler
+- **Proje Kontrol Listesi Detaylandırması:**
+    - `checklist.md` dosyası, tüm proje aşamalarını (Aşama 1'den Aşama 9'a kadar) kapsamlı bir şekilde detaylandırıldı.
+    - Özellikle Aşama 3 ("Kullanıcı Araçları & Otomasyon") için Hedef Takibi, Akıllı Kurallar ve Otomasyon Motoru, Proje Tamamlama Tahmini ve Risk Analizi, Sistem Entegrasyonu ve Kullanıcı Deneyimi başlıkları altında çok daha detaylı ve parçalanmış görev listeleri oluşturuldu.
+
+### 🔧 Teknik İyileştirmeler
+- **Mevcut AI Özelliklerinin Durum Tespiti:**
+    - `aw-server/aw-webui/src/components` dizinindeki Vue bileşenleri (`AnomalyDetectionDisplay.vue`, `BehavioralTrendsDisplay.vue`, `AutoCategorizationDisplay.vue`, `FocusQualityScoreDisplay.vue`, `CommunityRulesDisplay.vue`, `ContextualCategorizationDisplay.vue`) incelenerek, Aşama 2'deki temel yapay zeka analitik motoru özelliklerinin çoğunun (mock veri ile de olsa) zaten mevcut olduğu tespit edildi ve `checklist.md` üzerinde "tamamlandı" olarak işaretlendi.
+- **Dokümantasyon Hata Düzeltmesi:**
+    - `checklist.md` dosyasındaki bir yazım hatası ("dışa kılarma" ifadesi "dışa aktarma" olarak) düzeltildi.
+- **Otomatik Zaman Damgası Güncellemesi:**
+    - `checklist.md` dosyasının altındaki "Son güncelleme" zaman damgasının otomatik olarak güncel tarih ve saat ile yenilenmesi sağlandı.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
+
+---
+
 ## v0.13.10-functions-bugfixes-part1 (2025-07-11 12:19:43)
 
 ### 🔧 Teknik İyileştirmeler
