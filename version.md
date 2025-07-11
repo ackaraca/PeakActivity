@@ -74,3 +74,10 @@ Firebase Functions now build and lint cleanly; deployment blocker removed.
 - **T050: Gelişmiş Anomali Tespit Modeli Geliştirme (Arka Uç):**
   - `functions/src/services/anomaly-detection-service.ts` dosyasındaki `detectAnomalies` fonksiyonu, gelecekte daha gelişmiş bir makine öğrenimi (ML) modeli entegrasyonu için bir yer tutucu ve güncellenmiş dönüş türleri ile güncellendi.
   - Mevcut istatistiksel mantık korunarak anomali skoru, sapma yüzdesi ve açıklama alanları eklendi. Model versiyonu bilgisi eklendi. 
+
+## 2025-07-11 22:29:35 - PeakActivity Geliştirme Güncellemesi
+
+### Yeni Özellikler ve İyileştirmeler:
+- **T051: Gelişmiş Anomali Tespit Modeli Geliştirme (Ön Uç):**
+  - `aw-server/aw-webui/src/views/Alerts.vue` dosyasındaki `AnomalyAlert` arayüzü, arka uçtaki `AnomalyResult` ve `AnomalyOutput` ile uyumlu hale getirildi.
+  - Pug şablonu, anomali skoru, sapma yüzdesi, açıklama gibi daha ayrıntılı anomali bilgilerini gösterecek şekilde güncellendi. Tüm yeni metinler Türkçeleştirildi. 
