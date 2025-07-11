@@ -1,5 +1,7 @@
-import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions';
+import { db } from "../firebaseAdmin";
+import { ActivityService } from './activity-service';
+import { AINotificationService } from './ai-notification-service';
 
 interface AutomationRuleDocument {
   id: string;                     // Document ID
@@ -51,7 +53,14 @@ interface AutomationRuleDocument {
 }
 
 export class AutomationRuleService {
-  private firestore = admin.firestore();
+  private firestore = db;
+  private activityService: ActivityService;
+  private aiNotificationService: AINotificationService;
+
+  constructor() {
+    this.activityService = new ActivityService();
+    this.aiNotificationService = new AINotificationService();
+  }
 
   /**
    * Yeni bir otomasyon kuralı oluşturur.
@@ -70,7 +79,6 @@ export class AutomationRuleService {
       updated_at: now,
       version: 1,
     });
-    await ruleRef.update({ id: ruleRef.id });
     return ruleRef.id;
   }
 
@@ -132,14 +140,14 @@ export class AutomationRuleService {
   public async evaluateRuleConditions(rule: AutomationRuleDocument, currentContext: any): Promise<boolean> {
     // TODO: Gerçek koşul değerlendirme mantığını buraya ekle
     // Örnek: currentContext.time_spent > rule.trigger.threshold_seconds
-    functions.logger.log(`Kural '${rule.name}' için koşullar değerlendiriliyor.`);
+    logger.log(`Kural '${rule.name}' için koşullar değerlendiriliyor.`);
     // Basit bir örnek koşul: Kural aktifse ve cooldown süresi dolmuşsa true döndür.
     const now = Date.now();
     if (!rule.is_active) {
       return false;
     }
     if (rule.cooldown_seconds && rule.last_triggered_at && (now - rule.last_triggered_at < rule.cooldown_seconds * 1000)) {
-      functions.logger.log(`Kural '${rule.name}' cooldown süresinde.`);
+      logger.log(`Kural '${rule.name}' cooldown süresinde.`);
       return false;
     }
 
@@ -148,7 +156,7 @@ export class AutomationRuleService {
         for (const condition of rule.trigger.conditions) {
             const fieldValue = currentContext[condition.field];
             if (fieldValue === undefined) {
-                functions.logger.warn(`Koşul değerlendirme hatası: Alan '${condition.field}' bağlamda bulunamadı.`);
+                logger.warn(`Koşul değerlendirme hatası: Alan '${condition.field}' bağlamda bulunamadı.`);
                 return false; // Alan bağlamda yoksa koşul karşılanmaz.
             }
 
@@ -165,12 +173,12 @@ export class AutomationRuleService {
                     } else if (Array.isArray(fieldValue) && typeof condition.value === 'string') {
                         if (!fieldValue.includes(condition.value)) return false;
                     } else {
-                        functions.logger.warn(`'contains' operatörü için geçersiz türler: fieldValue: ${typeof fieldValue}, value: ${typeof condition.value}`);
+                        logger.warn(`'contains' operatörü için geçersiz türler: fieldValue: ${typeof fieldValue}, value: ${typeof condition.value}`);
                         return false;
                     }
                     break;
                 default: 
-                    functions.logger.warn(`Bilinmeyen operatör: ${condition.operator}`);
+                    logger.warn(`Bilinmeyen operatör: ${condition.operator}`);
                     return false;
             }
         }
@@ -187,10 +195,70 @@ export class AutomationRuleService {
    * @param rule Kural belgesi.
    */
   public async executeRuleAction(rule: AutomationRuleDocument): Promise<void> {
-    functions.logger.log(`Kural '${rule.name}' eylemi gerçekleştiriliyor: ${rule.action.type}`);
-    // TODO: Gerçek eylem mantığını buraya ekle.
-    // Örneğin, bildirim göndermek için FCM veya başka bir mekanizma kullanılacak.
-    // block_app, suggest_break, switch_focus_mode gibi eylemler için Tauri uygulaması ile etkileşim gerekecek.
+    logger.log(`Kural '${rule.name}' eylemi gerçekleştiriliyor: ${rule.action.type}`);
+
+    switch (rule.action.type) {
+      case 'show_notification':
+        if (rule.action.title && rule.action.message) {
+          await this.aiNotificationService.sendAIRecommendationNotification(
+            rule.user_id,
+            rule.action.title,
+            rule.action.message,
+            { ruleId: rule.id, actionType: rule.action.type }
+          );
+          logger.log(`Bildirim gönderildi: ${rule.action.title} - ${rule.action.message}`);
+        }
+        break;
+      case 'block_app':
+        logger.log(`Uygulama engelleme eylemi tetiklendi: ${rule.action.app_to_block || 'Belirtilmedi'}. (İstemci tarafında işlenmesi gerekiyor)`);
+        // İstemci uygulamasına bildirim veya bir mesaj gönderilebilir
+        await this.aiNotificationService.sendAIRecommendationNotification(
+          rule.user_id,
+          'Uygulama Engelleme Uyarısı',
+          `${rule.action.app_to_block} uygulaması engelleniyor.`, // Veya daha detaylı bir mesaj
+          { ruleId: rule.id, actionType: rule.action.type, appToBlock: rule.action.app_to_block || '' }
+        );
+        break;
+      case 'suggest_break':
+        logger.log(`Mola önerme eylemi tetiklendi: ${rule.action.break_duration_minutes || 'Belirtilmedi'} dakika. (İstemci tarafında işlenmesi gerekiyor)`);
+        await this.aiNotificationService.sendAIRecommendationNotification(
+          rule.user_id,
+          'Mola Zamanı',
+          `Kısa bir ${rule.action.break_duration_minutes || ''} dakikalık mola vermeniz önerilir.`, // Veya daha detaylı bir mesaj
+          { ruleId: rule.id, actionType: rule.action.type, breakDuration: rule.action.break_duration_minutes?.toString() || '' }
+        );
+        break;
+      case 'switch_focus_mode':
+        logger.log(`Odak modu değiştirme eylemi tetiklendi: ${rule.action.target_focus_mode || 'Belirtilmedi'}. (İstemci tarafında işlenmesi gerekiyor)`);
+        await this.aiNotificationService.sendAIRecommendationNotification(
+          rule.user_id,
+          'Odak Modu Değişikliği',
+          `Odak modu ${rule.action.target_focus_mode || ''} olarak değiştiriliyor.`, // Veya daha detaylı bir mesaj
+          { ruleId: rule.id, actionType: rule.action.type, targetFocusMode: rule.action.target_focus_mode || '' }
+        );
+        break;
+      case 'log_mood':
+        logger.log(`Ruh hali kaydetme eylemi tetiklendi. (İstemci tarafında kullanıcıdan girdi bekleniyor)`);
+        await this.aiNotificationService.sendAIRecommendationNotification(
+          rule.user_id,
+          'Ruh Halinizi Kaydedin',
+          'Güncel ruh halinizi kaydetmek ister misiniz?',
+          { ruleId: rule.id, actionType: rule.action.type }
+        );
+        break;
+      case 'context_prompt':
+        logger.log(`Bağlam istemi eylemi tetiklendi: ${rule.action.prompt_text || 'Belirtilmedi'}. (İstemci tarafında işlenmesi gerekiyor)`);
+        await this.aiNotificationService.sendAIRecommendationNotification(
+          rule.user_id,
+          'Bağlamsal Bilgilendirme',
+          rule.action.prompt_text || 'Bir mesajınız var.',
+          { ruleId: rule.id, actionType: rule.action.type, promptText: rule.action.prompt_text || '' }
+        );
+        break;
+      default:
+        logger.warn(`Bilinmeyen eylem tipi: ${rule.action.type}`);
+        break;
+    }
 
     // Eylem tamamlandıktan sonra last_triggered_at güncelle
     await this.firestore.collection(`users/${rule.user_id}/automation_rules`).doc(rule.id).update({

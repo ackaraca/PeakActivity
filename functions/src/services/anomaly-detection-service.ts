@@ -1,5 +1,4 @@
-import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
+import { db } from "../firebaseAdmin";
 
 interface DailyTotal {
   date: string;

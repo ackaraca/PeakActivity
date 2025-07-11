@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import { db } from "../firebaseAdmin";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - trello.js types may be incomplete
 import { TrelloClient } from 'trello.js';
@@ -7,13 +7,21 @@ import { TrelloClient } from 'trello.js';
 import JiraApi from 'jira-client';
 
 export class TrelloJiraService {
-  private db: admin.firestore.Firestore;
+  private db: any;
+  private trelloClients: Map<string, any>;
+  private jiraClients: Map<string, any>;
 
   constructor() {
-    this.db = admin.firestore();
+    this.db = db;
+    this.trelloClients = new Map();
+    this.jiraClients = new Map();
   }
 
   private async getTrelloClient(userId: string) {
+    if (this.trelloClients.has(userId)) {
+      return this.trelloClients.get(userId);
+    }
+
     const userDoc = await this.db.collection('users').doc(userId).get();
     const trelloCredentials = userDoc.data()?.trelloCredentials; // Firestore'da saklanan Trello kimlik bilgileri
 
@@ -21,15 +29,19 @@ export class TrelloJiraService {
       throw new Error('Trello kimlik bilgileri bulunamadı. Lütfen entegrasyonu yapılandırın.');
     }
 
-    // TrelloClient'ı başlat
     const trelloClient = new TrelloClient({
       key: trelloCredentials.apiKey,
       token: trelloCredentials.token,
     });
+    this.trelloClients.set(userId, trelloClient);
     return trelloClient;
   }
 
   private async getJiraClient(userId: string) {
+    if (this.jiraClients.has(userId)) {
+      return this.jiraClients.get(userId);
+    }
+
     const userDoc = await this.db.collection('users').doc(userId).get();
     const jiraCredentials = userDoc.data()?.jiraCredentials; // Firestore'da saklanan Jira kimlik bilgileri
 
@@ -37,7 +49,6 @@ export class TrelloJiraService {
       throw new Error('Jira kimlik bilgileri bulunamadı. Lütfen entegrasyonu yapılandırın.');
     }
 
-    // JiraApi'yi başlat
     const jiraClient = new JiraApi({
       protocol: 'https',
       host: jiraCredentials.host,
@@ -46,6 +57,7 @@ export class TrelloJiraService {
       apiVersion: '2',
       strictSSL: true,
     });
+    this.jiraClients.set(userId, jiraClient);
     return jiraClient;
   }
 
@@ -134,13 +146,15 @@ export class TrelloJiraService {
       let totalCards = 0;
       let completedCards = 0;
 
+      // Kullanıcının Trello ayarlarından tamamlanmış liste adlarını al
+      const userConfigDoc = await this.db.collection('users').doc(userId).collection('integrations').doc('trello').get();
+      const completedListNames: string[] = userConfigDoc.data()?.completedListNames || ['done', 'tamamlandı', 'completed']; // Varsayılan değerler
+
       for (const list of lists) {
-        // Trello API'sinde doğrudan card count yok, bu yüzden listeleri tek tek çekmemiz gerekebilir.
-        // Şimdilik, her listedeki kartları ayrı ayrı çekeceğiz.
         const cards: any[] = await trelloClient.lists.getCards(list.id as any);
         totalCards += cards.length;
-        // 'Done' veya 'Tamamlandı' gibi bir listedeki kartları tamamlanmış sayabiliriz.
-        if (list.name.toLowerCase().includes('done') || list.name.toLowerCase().includes('tamamlandı')) {
+        
+        if (completedListNames.includes(list.name.toLowerCase())) {
           completedCards += cards.length;
         }
       }
@@ -174,11 +188,12 @@ export class TrelloJiraService {
       let totalIssues = searchResults.total;
       let completedIssues = 0;
 
-      // "Done" kategorisindeki sorunları tamamlanmış sayalım.
-      const doneStatuses = ['Done', 'Closed', 'Resolved']; // Jira yapılandırmasına göre değişebilir
+      // Kullanıcının Jira ayarlarından tamamlanmış durum adlarını al
+      const userConfigDoc = await this.db.collection('users').doc(userId).collection('integrations').doc('jira').get();
+      const completedStatuses: string[] = userConfigDoc.data()?.completedStatuses || ['Done', 'Closed', 'Resolved']; // Varsayılan değerler
 
       for (const issue of searchResults.issues) {
-        if (doneStatuses.includes(issue.fields.status.name)) {
+        if (completedStatuses.includes(issue.fields.status.name)) {
           completedIssues++;
         }
       }

@@ -1,14 +1,17 @@
 import * as admin from 'firebase-admin';
 import { Messaging } from 'firebase-admin/lib/messaging';
 import { NotificationService } from './notification-service';
+import { db } from "../firebaseAdmin";
 
 export class AINotificationService {
   private messaging: Messaging;
   private notificationService: NotificationService;
+  private db: any;
 
   constructor() {
     this.messaging = admin.messaging();
     this.notificationService = new NotificationService();
+    this.db = db;
   }
 
   /**
@@ -21,11 +24,10 @@ export class AINotificationService {
    */
   async sendAIRecommendationNotification(userId: string, title: string, body: string, data?: { [key: string]: string }) {
     try {
-      // TODO: Kullanıcının FCM token'ını Firestore'dan alın
-      // Örneğin: const userDoc = await this.db.collection('users').doc(userId).get();
-      // const fcmToken = userDoc.data()?.fcmToken;
+      const userDoc = await this.db.collection('users').doc(userId).get();
+      const fcmToken = userDoc.data()?.fcmToken;
 
-      const fcmToken = 'USER_FCM_TOKEN'; // Yer tutucu
+      // const fcmToken = 'USER_FCM_TOKEN'; // Yer tutucu
 
       if (!fcmToken) {
         console.warn(`Kullanıcı ${userId} için FCM token'ı bulunamadı. Bildirim gönderilemiyor.`);

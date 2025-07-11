@@ -1,16 +1,16 @@
-import * as admin from 'firebase-admin';
+import { db } from "../firebaseAdmin";
 import { ActivityService } from './activity-service';
 import { ProjectPredictionService } from './project-prediction-service';
 import { TrelloJiraService } from './trello-jira-service';
 
 export class MLDataPreparationService {
-  private db: admin.firestore.Firestore;
+  private db: any;
   private activityService: ActivityService;
   private projectService: ProjectPredictionService;
   private trelloJiraService: TrelloJiraService;
 
   constructor() {
-    this.db = admin.firestore();
+    this.db = db;
     this.activityService = new ActivityService();
     this.projectService = new ProjectPredictionService();
     this.trelloJiraService = new TrelloJiraService();
@@ -51,11 +51,12 @@ export class MLDataPreparationService {
       // Verileri ML modeli için uygun bir formatta birleştirin ve dönüştürün.
       const preparedData = {
         activities: activities.map(activity => ({
-          app: activity.data?.app,
-          title: activity.data?.title,
+          app: activity.app,
+          title: activity.title,
           duration_sec: activity.duration_sec,
           timestamp_start: activity.timestamp_start,
-          is_afk: activity.data?.is_afk,
+          is_afk: activity.is_afk,
+          category: activity.category, // 'category' alanını ekle
         })),
         projects: projects.map(project => ({
           id: project.id,
@@ -70,9 +71,14 @@ export class MLDataPreparationService {
       };
 
       return preparedData;
-    } catch (error) {
-      console.error(`ML verisi hazırlanırken hata oluştu:`, error);
-      throw error;
+    } catch (error: any) {
+      if (error instanceof Error) {
+        console.error(`ML verisi hazırlanırken hata oluştu:`, error.message);
+        throw new Error(`ML verisi hazırlanamadı: ${error.message}`);
+      } else {
+        console.error(`ML verisi hazırlanırken bilinmeyen bir hata oluştu:`, error);
+        throw new Error("ML verisi hazırlanırken bilinmeyen bir hata oluştu.");
+      }
     }
   }
 } 

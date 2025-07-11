@@ -38,10 +38,7 @@ dmyp.json
 # Cursor IDE Rules - GitHub'da paylaşılmasın
 .cursor/
 .cursor/rules/
-
-# PeakActivity Development Files
-README-peakactivity.md
-version-peakactivity.md
+chatcontext/
 
 # Environment files
 .env

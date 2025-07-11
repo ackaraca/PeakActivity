@@ -1,7 +1,4 @@
-import * as admin from 'firebase-admin';
-
-admin.initializeApp();
-const db = admin.firestore();
+import { db } from "../firebaseAdmin";
 
 export interface Goal {
   id: string;
@@ -112,11 +109,93 @@ export class GoalService {
 
   /**
    * Hedef ilerlemesini kontrol eder ve günceller
+   * Bu metod, kullanıcının aktivitelerini işleyerek ilgili hedeflerin ilerlemesini günceller.
+   * @param userId Aktivitenin ait olduğu kullanıcının Firebase UID'si.
+   * @param activityData İşlenecek aktivite verisi (örneğin, ActivityService'den gelen veri).
+   * @returns Güncellenen hedeflerin ID'lerini içeren bir dizi.
    */
-  static async checkGoalProgress(userId: string, activityData: any): Promise<any> {
-    // TODO: Bu kısım activity türüne ve hedef türüne göre implement edilecek.
-    // Örneğin: activityData.category, activityData.duration vs. kullanılarak ilgili hedefler bulunup güncellenecek.
-    console.log(`Checking goal progress for user ${userId} with activity: ${JSON.stringify(activityData)}`);
-    return {};
+  static async checkGoalProgress(userId: string, activityData: any): Promise<string[]> {
+    try {
+      console.log(`Checking goal progress for user ${userId} with activity: ${JSON.stringify(activityData)}`);
+
+      const updatedGoalIds: string[] = [];
+      const goalsSnapshot = await db.collection('users').doc(userId).collection('goals').get();
+      const goals = goalsSnapshot.docs.map(doc => doc.data() as Goal);
+
+      for (const goal of goals) {
+        // Hedefin kriterleriyle aktiviteyi eşleştir
+        const isMatch = (
+          (!goal.targetCriteria.appNames || goal.targetCriteria.appNames.includes(activityData.app)) &&
+          (!goal.targetCriteria.categories || goal.targetCriteria.categories.includes(activityData.category)) &&
+          (!goal.targetCriteria.tags || goal.targetCriteria.tags.some((tag: string) => activityData.tags && activityData.tags.includes(tag)))
+        );
+
+        if (isMatch) {
+          let updated = false;
+          const currentTimestamp = Date.now();
+
+          // İlerleme metriklerini güncelle
+          if (activityData.duration_sec) {
+            goal.progress.currentDuration = (goal.progress.currentDuration || 0) + activityData.duration_sec;
+            updated = true;
+          }
+          if (activityData.count) { // Eğer aktivite bir sayı içeriyorsa (örn. tamamlanan görev sayısı)
+            goal.currentCount = (goal.currentCount || 0) + activityData.count;
+            updated = true;
+          }
+
+          // Streak (seri) yönetimi - basit bir günlük seri kontrolü
+          const lastUpdatedDate = new Date(goal.progress.lastUpdated).toDateString();
+          const activityDate = new Date(activityData.timestamp).toDateString();
+          const yesterdayDate = new Date(currentTimestamp - 24 * 60 * 60 * 1000).toDateString();
+
+          if (activityDate === lastUpdatedDate) {
+            // Aynı gün içinde ek aktivite, seri etkilenmez
+          } else if (activityDate === yesterdayDate) {
+            // Dünden devam ediyor, seriyi artır
+            goal.progress.currentStreak = (goal.progress.currentStreak || 0) + 1;
+            updated = true;
+          } else {
+            // Seri kırıldı, sıfırla
+            goal.progress.currentStreak = 1;
+            updated = true;
+          }
+          goal.progress.longestStreak = Math.max(goal.progress.longestStreak || 0, goal.progress.currentStreak);
+          goal.progress.lastUpdated = currentTimestamp;
+
+
+          // Hedef türüne göre ek kontroller ve tamamlanma mantığı (basit örnekler)
+          switch (goal.type) {
+            case 'time_based':
+              // Örneğin, targetDuration'a ulaşıldığında hedef tamamlanır
+              break;
+            case 'count_based':
+              // Örneğin, targetCount'a ulaşıldığında hedef tamamlanır
+              break;
+            case 'habit_based':
+              // Örneğin, belirli bir seriye ulaşıldığında hedef tamamlanır
+              break;
+            case 'milestone_based':
+              // Bu tür genellikle manuel olarak güncellenir veya daha karmaşık bir mantık gerektirir.
+              break;
+          }
+
+          if (updated) {
+            await db.collection('users').doc(userId).collection('goals').doc(goal.id).update({
+              progress: goal.progress,
+              currentCount: goal.currentCount,
+              updatedAt: currentTimestamp,
+              version: (goal.version || 0) + 1,
+            });
+            updatedGoalIds.push(goal.id);
+            console.log(`Goal ${goal.id} progress updated for user ${userId}.`);
+          }
+        }
+      }
+      return updatedGoalIds;
+    } catch (error: any) {
+      console.error(`Hedef ilerlemesi kontrol edilirken hata oluştu:`, error);
+      throw new Error(`Hedef ilerlemesi kontrol edilirken hata oluştu: ${error.message}`);
+    }
   }
 } 

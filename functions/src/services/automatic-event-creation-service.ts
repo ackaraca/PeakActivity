@@ -1,15 +1,15 @@
-import * as admin from 'firebase-admin';
+import { db } from "../firebaseAdmin";
 import { GoogleCalendarService } from './google-calendar-service';
 import { ActivityService } from './activity-service';
 import { parseISO, format, isWithinInterval, addHours, startOfDay, endOfDay } from 'date-fns';
 
 export class AutomaticEventCreationService {
-  private db: admin.firestore.Firestore;
+  private db: any;
   private googleCalendarService: GoogleCalendarService;
   private activityService: ActivityService;
 
   constructor() {
-    this.db = admin.firestore();
+    this.db = db;
     this.googleCalendarService = new GoogleCalendarService();
     this.activityService = new ActivityService();
   }
@@ -32,8 +32,8 @@ export class AutomaticEventCreationService {
       const focusedApps: { [appName: string]: { duration: number; start: Date; end: Date } } = {};
 
       for (const activity of activities) {
-        if (activity.data && activity.data.app && !activity.data.is_afk) {
-          const appName = activity.data.app;
+        if (activity.app && !activity.is_afk) {
+          const appName = activity.app;
           const duration = activity.duration_sec / 60; // Dakika cinsinden
           const start = parseISO(activity.timestamp_start);
           const end = parseISO(activity.timestamp_end);

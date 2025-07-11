@@ -1,9 +1,9 @@
-import * as admin from 'firebase-admin';
-import { firestore } from 'firebase-admin';
+import { db } from "../firebaseAdmin";
 import { ProjectPredictionService } from './project-prediction-service';
 import { AnomalyDetectionService } from './anomaly-detection-service';
 import { BehavioralAnalysisService } from './behavioral-analysis-service';
 import { FocusQualityScoreService } from './focus-quality-score-service';
+import { ActivityService } from './activity-service';
 
 interface ProjectDocument {
   id: string;
@@ -33,18 +33,20 @@ interface ProjectCompletionPrediction {
 }
 
 export class ProjectPredictionAIService {
-  private db: firestore.Firestore;
+  private db: any;
   private projectService: ProjectPredictionService;
   private anomalyService: AnomalyDetectionService;
   private behavioralService: BehavioralAnalysisService;
   private focusService: FocusQualityScoreService;
+  private activityService: ActivityService;
 
   constructor() {
-    this.db = admin.firestore();
+    this.db = db;
     this.projectService = new ProjectPredictionService();
     this.anomalyService = new AnomalyDetectionService();
     this.behavioralService = new BehavioralAnalysisService();
     this.focusService = new FocusQualityScoreService();
+    this.activityService = new ActivityService();
   }
 
   /**
@@ -61,12 +63,11 @@ export class ProjectPredictionAIService {
       throw new Error("Project not found.");
     }
 
-    // Retrieve relevant activity data for the user
-    // In a real app, this would query activity events from Firestore
-    // For simulation, let's assume we have a way to get relevant past activity for the project.
-    const relevantActivityEvents: any[] = []; // Placeholder for activity data
-    // TODO: Implement actual fetching of activity data related to the project from Firestore.
-    // This would likely involve querying the 'activities' collection with filters for app_names, categories, etc.
+    const now = Date.now();
+    const startDate = new Date(project.start_date).toISOString();
+    const endDate = new Date(now).toISOString();
+
+    const relevantActivityEvents = await this.activityService.getActivitiesInInterval(userId, startDate, endDate);
 
     let estimatedRemainingDuration = project.estimated_remaining_duration || 0;
     let progressPercentage = project.progress_percentage || 0;
@@ -88,8 +89,35 @@ export class ProjectPredictionAIService {
       }
 
       // Example: If there are recent anomalies, adjust confidence
-      const dailyTotalsForAnomaly: { date: string; total_seconds: number }[] = []; // Populate from relevantActivityEvents
-      // TODO: Convert relevantActivityEvents to dailyTotals format for anomaly detection
+      const dailyTotalsForAnomaly: { date: string; total_seconds: number }[] = [];
+      const dailyCategoryTotalsForBehavioral: { date: string; categories: { [key: string]: number } }[] = [];
+
+      // Populate dailyTotalsForAnomaly and dailyCategoryTotalsForBehavioral
+      const dailyTotalsMap = new Map<string, number>();
+      const dailyCategoryTotalsMap = new Map<string, { [category: string]: number }>();
+
+      for (const event of relevantActivityEvents) {
+        const eventDate = new Date(event.timestamp_start).toISOString().split('T')[0]; // YYYY-MM-DD
+        const duration = event.duration_sec || 0;
+
+        // For Anomaly Detection
+        dailyTotalsMap.set(eventDate, (dailyTotalsMap.get(eventDate) || 0) + duration);
+
+        // For Behavioral Analysis
+        if (event.category) {
+          const categoryTotals = dailyCategoryTotalsMap.get(eventDate) || {};
+          categoryTotals[event.category] = (categoryTotals[event.category] || 0) + duration;
+          dailyCategoryTotalsMap.set(eventDate, categoryTotals);
+        }
+      }
+
+      dailyTotalsMap.forEach((total_seconds, date) => {
+        dailyTotalsForAnomaly.push({ date, total_seconds });
+      });
+      dailyCategoryTotalsMap.forEach((categories, date) => {
+        dailyCategoryTotalsForBehavioral.push({ date, categories });
+      });
+
       if (dailyTotalsForAnomaly.length > 0) {
         const anomalies = this.anomalyService.detectAnomalies(dailyTotalsForAnomaly);
         if (anomalies.anomalies.length > 0) {
@@ -98,9 +126,6 @@ export class ProjectPredictionAIService {
         }
       }
 
-      // Example: Influence of trending categories
-      const dailyCategoryTotalsForBehavioral: { date: string; categories: { [key: string]: number } }[] = []; // Populate from relevantActivityEvents
-      // TODO: Convert relevantActivityEvents to dailyCategoryTotals format for behavioral analysis
       if (dailyCategoryTotalsForBehavioral.length > 0) {
         const behavioralTrends = this.behavioralService.analyzeBehavioralPatterns(dailyCategoryTotalsForBehavioral, 30); // 30-day window
         if (behavioralTrends.trending_categories.some(t => t.trend === 'falling' && t.category === 'coding')) {

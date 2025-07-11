@@ -1,17 +1,13 @@
 import { onRequest, HttpsError, onCall } from 'firebase-functions/v2/https';
-import * as admin from 'firebase-admin';
 import { google } from 'googleapis';
 import { GoogleCalendarService } from '../services/google-calendar-service';
 
-const functions = require('firebase-functions');
-
 // TODO: Bu değerleri Firebase Functions çevre değişkenleri olarak yapılandırın
-const GOOGLE_CLIENT_ID = functions.config().google.client_id;
-const GOOGLE_CLIENT_SECRET = functions.config().google.client_secret;
-const GOOGLE_REDIRECT_URI = functions.config().google.redirect_uri; // Örneğin: https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/googleCalendarOAuthCallback
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI; // Örneğin: https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/googleCalendarOAuthCallback
 
-// Admin SDK'yı zaten başka bir yerde başlatmış olmalıyız (örneğin, index.ts)
-// admin.initializeApp();
+import { admin, db } from "../firebaseAdmin";
 
 const oAuth2Client = new google.auth.OAuth2(
   GOOGLE_CLIENT_ID,
@@ -78,7 +74,7 @@ export const googleCalendarOAuthCallback = onRequest({
     const { tokens } = await oAuth2Client.getToken(code);
 
     // Jetonları Firebase Firestore'da ilgili kullanıcıya bağlayarak saklayın.
-    await admin.firestore().collection('users').doc(userId).set({
+    await db.collection('users').doc(userId).set({
       googleCalendarTokens: tokens,
       googleCalendarAuthDate: admin.firestore.FieldValue.serverTimestamp(),
     }, { merge: true });

@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { linearRegression, linearRegressionLine } from "simple-statistics";
 
 interface DailyCategoryTotals {
   date: string;
@@ -23,37 +23,6 @@ interface BehavioralAnalysisOutput {
 }
 
 export class BehavioralAnalysisService {
-  /**
-   * Calculates the linear regression slope.
-   * This is a simplified regression implementation (y = mx + b).
-   * @param data The y-values of the points (category durations).
-   * @returns The slope value (m).
-   */
-  private calculateLinearRegressionSlope(data: number[]): number {
-    const n = data.length;
-    if (n < 2) return 0; // Requires at least 2 points to calculate slope
-
-    let sum_x = 0;
-    let sum_y = 0;
-    let sum_xy = 0;
-    let sum_x2 = 0;
-
-    for (let i = 0; i < n; i++) {
-      const x = i; // x as day number
-      const y = data[i];
-
-      sum_x += x;
-      sum_y += y;
-      sum_xy += x * y;
-      sum_x2 += x * x;
-    }
-
-    const denominator = n * sum_x2 - sum_x * sum_x;
-    if (denominator === 0) return 0; // Vertical line or all x values are the same
-
-    const slope = (n * sum_xy - sum_x * sum_y) / denominator;
-    return slope;
-  }
 
   /**
    * Analyzes behavioral patterns and trends.
@@ -62,7 +31,7 @@ export class BehavioralAnalysisService {
    * @returns Analysis results.
    */
   public analyzeBehavioralPatterns(dailyTotals: DailyCategoryTotals[], window: number): BehavioralAnalysisOutput {
-    const relevantDailyTotals = dailyTotals.slice(-window); // Get the last 'window' days
+    const relevantDailyTotals = dailyTotals.slice(-window);
 
     const trendingCategories: TrendingCategory[] = [];
     const allCategories = new Set<string>();
@@ -72,10 +41,17 @@ export class BehavioralAnalysisService {
     });
 
     for (const category of Array.from(allCategories)) {
-      const categoryData = relevantDailyTotals.map(day => day.categories[category] || 0);
-      if (categoryData.length < 2) continue; // Skip if not enough data
+      const categoryDataPoints: [number, number][] = [];
+      for (let i = 0; i < relevantDailyTotals.length; i++) {
+        categoryDataPoints.push([i, relevantDailyTotals[i].categories[category] || 0]);
+      }
 
-      const slope = this.calculateLinearRegressionSlope(categoryData);
+      if (categoryDataPoints.length < 2) continue; // Skip if not enough data
+
+      const regression = linearRegression(categoryDataPoints);
+      const line = linearRegressionLine(regression);
+      const slope = line(1) - line(0); // Slope per day
+
       let trend: 'rising' | 'falling' | 'stable' = 'stable';
 
       if (slope > 100) {

@@ -1,12 +1,8 @@
 
-import * as functions from "firebase-functions";
-import * as admin from "firebase-admin";
+import { db } from "../firebaseAdmin";
 import { AnomalyDetectionService } from "./anomaly-detection-service";
 import { BehavioralAnalysisService } from "./behavioral-analysis-service";
 import { FocusQualityScoreService } from "./focus-quality-score-service";
-
-admin.initializeApp();
-const db = admin.firestore();
 
 interface InsightDocument {
   id: string;
@@ -120,7 +116,7 @@ export class InsightGenerationService {
   async deleteInsight(userId: string, insightId: string): Promise<boolean> {
     const insightRef = db.collection(`users/${userId}/insights`).doc(insightId);
     await insightRef.delete();
-    const doc = await insightRef.get();
-    return !doc.exists;
+    // Silme işlemi başarılıysa, belge artık mevcut değildir. Ek bir get() çağrısı gereksizdir.
+    return true;
   }
 } 

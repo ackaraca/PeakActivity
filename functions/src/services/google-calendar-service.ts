@@ -1,14 +1,20 @@
-import * as admin from 'firebase-admin';
+import { db } from "../firebaseAdmin";
 import { google } from 'googleapis';
 
 export class GoogleCalendarService {
-  private db: admin.firestore.Firestore;
+  private db: any;
+  private oAuth2Clients: Map<string, any>;
 
   constructor() {
-    this.db = admin.firestore();
+    this.db = db;
+    this.oAuth2Clients = new Map();
   }
 
   private async getOAuth2Client(userId: string) {
+    if (this.oAuth2Clients.has(userId)) {
+      return this.oAuth2Clients.get(userId);
+    }
+
     const userDoc = await this.db.collection('users').doc(userId).get();
     const tokens = userDoc.data()?.googleCalendarTokens;
 
@@ -41,6 +47,7 @@ export class GoogleCalendarService {
       console.log('Google Takvim jetonları yenilendi ve güncellendi.');
     });
 
+    this.oAuth2Clients.set(userId, oAuth2Client);
     return oAuth2Client;
   }
 

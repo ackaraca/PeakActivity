@@ -1,6 +1,6 @@
 # PeakActivity - Akıllı Üretkenlik ve Dijital Sağlık Koçu
 
-**Son Güncelleme:** 2025-07-09 00:10:34
+**Son Güncelleme:** 2025-07-09 03:10:34
 
 PeakActivity, ActivityWatch projesini temel alarak geliştirilmiş yeni nesil bir SaaS ürünüdür. Ham veri yığınları sunmak yerine, yapay zeka aracılığıyla veriyi eyleme geçirilebilir, kişiselleştirilmiş ve bağlamsal bilgelere dönüştürür.
 

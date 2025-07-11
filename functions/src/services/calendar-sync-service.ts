@@ -1,13 +1,13 @@
-import * as admin from 'firebase-admin';
+import { db, admin } from "../firebaseAdmin";
 import { google } from 'googleapis';
 import { GoogleCalendarService } from './google-calendar-service';
 
 export class CalendarSyncService {
-  private db: admin.firestore.Firestore;
+  private db: any;
   private googleCalendarService: GoogleCalendarService;
 
   constructor() {
-    this.db = admin.firestore();
+    this.db = db;
     this.googleCalendarService = new GoogleCalendarService();
   }
 
@@ -33,7 +33,7 @@ export class CalendarSyncService {
       // Mevcut etkinlikleri al
       const existingEventsSnapshot = await userCalendarRef.get();
       const existingEventsMap = new Map<string, any>();
-      existingEventsSnapshot.forEach(doc => {
+      existingEventsSnapshot.forEach((doc: FirebaseFirestore.DocumentSnapshot) => {
         existingEventsMap.set(doc.id, doc.data());
       });
 
@@ -42,7 +42,7 @@ export class CalendarSyncService {
           const existingEvent = existingEventsMap.get(event.id);
           if (!existingEvent || JSON.stringify(existingEvent) !== JSON.stringify(event)) {
             // Yeni etkinlik veya güncellenmiş etkinlik
-            batch.set(userCalendarRef.doc(event.id), event, { merge: true });
+            batch.set(userCalendarRef.doc(event.id), { ...event, deleted: false }, { merge: true }); // deleted: false ekle
             existingEventsMap.delete(event.id); // İşlenenleri haritadan kaldır
           }
         }
@@ -52,7 +52,9 @@ export class CalendarSyncService {
       // TODO: Gerçekte silmeden önce daha sofistike bir silme stratejisi düşünün (örn. soft delete).
       for (const eventId of existingEventsMap.keys()) {
         // batch.delete(userCalendarRef.doc(eventId));
-        console.log(`Etkinlik ${eventId} Google Takvim'de bulunamadı. Yerel olarak silinmedi.`);
+        // Soft delete: Etkinliği silmek yerine 'deleted' flag'ini true olarak ayarla
+        batch.update(userCalendarRef.doc(eventId), { deleted: true, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+        console.log(`Etkinlik ${eventId} Google Takvim'de bulunamadı. Yerel olarak soft-silindi.`);
       }
 
       await batch.commit();
@@ -70,7 +72,7 @@ export class CalendarSyncService {
     
     const syncPromises: Promise<void>[] = [];
 
-    usersSnapshot.forEach(doc => {
+    usersSnapshot.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
       const userId = doc.id;
       syncPromises.push(this.syncUserCalendar(userId));
     });

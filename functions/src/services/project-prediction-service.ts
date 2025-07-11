@@ -1,5 +1,4 @@
-import * as admin from 'firebase-admin';
-import { firestore } from 'firebase-admin';
+import { db } from "../firebaseAdmin";
 
 interface ProjectDocument {
   id: string;
@@ -23,10 +22,10 @@ interface ProjectDocument {
 }
 
 export class ProjectPredictionService {
-  private db: firestore.Firestore;
+  private db: any;
 
   constructor() {
-    this.db = admin.firestore();
+    this.db = db;
   }
 
   /**
@@ -91,7 +90,7 @@ export class ProjectPredictionService {
    */
   async getAllProjects(userId: string): Promise<ProjectDocument[]> {
     const projectsSnapshot = await this.db.collection(`users/${userId}/projects`).get();
-    return projectsSnapshot.docs.map(doc => doc.data() as ProjectDocument);
+    return projectsSnapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => doc.data() as ProjectDocument);
   }
 
   /**

@@ -1,4 +1,5 @@
 import { firestore } from 'firebase-admin';
+import { ActivityEvent } from '../types/activity-event';
 
 export class ActivityService {
   private db: firestore.Firestore;
@@ -40,7 +41,7 @@ export class ActivityService {
         .orderBy('timestamp_start')
         .get();
 
-      return snapshot.docs.map(doc => doc.data());
+      return snapshot.docs.map(doc => doc.data() as ActivityEvent);
     } catch (error) {
       console.error("Error getting activities in interval:", error);
       throw new Error("Failed to get activities in interval.");

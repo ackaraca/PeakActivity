@@ -1,5 +1,3 @@
-import * as functions from 'firebase-functions';
-
 interface ActivityEvent {
   app: string;
   title: string;
@@ -52,6 +50,18 @@ export class AutoCategorizationService {
     'teams.exe': 'communication',
   };
 
+  private keywordRegexes: Map<string, RegExp[]> = new Map();
+
+  constructor() {
+    for (const category in this.KEYWORD_MAPPINGS) {
+      const regexes: RegExp[] = [];
+      for (const keyword of this.KEYWORD_MAPPINGS[category]) {
+        regexes.push(new RegExp(`\\b${keyword}\\b`, 'gi'));
+      }
+      this.keywordRegexes.set(category, regexes);
+    }
+  }
+
   /**
    * Otomatik kategorizasyon ve etiketleme işlemi.
    * @param events Kategorize edilecek etkinlikler dizisi.
@@ -71,11 +81,13 @@ export class AutoCategorizationService {
 
       // 2. Use TF-IDF against curated corpus to get top 3 candidate categories. (Basitleştirilmiş anahtar kelime puanlaması)
       for (const category of this.TAXONOMY) {
-        for (const keyword of this.KEYWORD_MAPPINGS[category] || []) {
-          const regex = new RegExp(`\b${keyword}\b`, 'gi'); // Kelime sınırları ile arama
-          const matches = titleDomain.match(regex);
-          if (matches) {
-            scores[category] += matches.length; // Kelime frekansını puan olarak ekle
+        const regexes = this.keywordRegexes.get(category);
+        if (regexes) {
+          for (const regex of regexes) {
+            const matches = titleDomain.match(regex);
+            if (matches) {
+              scores[category] += matches.length; // Kelime frekansını puan olarak ekle
+            }
           }
         }
       }

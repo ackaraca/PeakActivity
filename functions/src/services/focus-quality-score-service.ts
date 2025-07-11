@@ -1,4 +1,3 @@
-import * as functions from 'firebase-functions';
 import { parseISO, differenceInSeconds, getHours, setHours, setMinutes, setSeconds } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 
@@ -8,7 +7,7 @@ interface ActivityEvent {
   duration_sec: number;
   app: string;
   title: string;
-  category: string;
+  category?: string; // Kategori artık isteğe bağlı
   window_change_count: number;
   input_frequency: number;
   is_afk: boolean;
@@ -78,7 +77,7 @@ export class FocusQualityScoreService {
 
     // 4. -10 points if any social-media category app is used in the session.
     const socialMediaCategories = ['social']; // Kurala uygun olarak sadece 'social' kategorisi
-    if (sessionEvents.some(event => socialMediaCategories.includes(event.category))) {
+    if (sessionEvents.some(event => event.category && socialMediaCategories.includes(event.category))) {
       baseScore -= 10;
       distractions += 1; // Social media usage is also a distraction
     }
@@ -88,10 +87,11 @@ export class FocusQualityScoreService {
     const startHour = getHours(zonedSessionStart);
 
     // Define local time ranges (adjusting for time zone differences if necessary)
-    const nineAm = getHours(utcToZonedTime(setHours(setMinutes(setSeconds(new Date(), 0), 0), 9), userTimeZone));
-    const twelvePm = getHours(utcToZonedTime(setHours(setMinutes(setSeconds(new Date(), 0), 0), 12), userTimeZone));
-    const midnight = getHours(utcToZonedTime(setHours(setMinutes(setSeconds(new Date(), 0), 0), 0), userTimeZone));
-    const sixAm = getHours(utcToZonedTime(setHours(setMinutes(setSeconds(new Date(), 0), 0), 6), userTimeZone));
+    // These can be pre-calculated or memoized if this function is called frequently with the same timezone
+    const nineAm = 9;
+    const twelvePm = 12;
+    const midnight = 0;
+    const sixAm = 6;
 
     if (startHour >= nineAm && startHour < twelvePm) {
       baseScore += 5;

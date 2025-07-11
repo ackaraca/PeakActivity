@@ -1,5 +1,6 @@
 import { onRequest, HttpsError } from 'firebase-functions/v2/https';
 import { GoalService } from '../services/goal-service';
+import * as admin from 'firebase-admin';
 
 // Hedef oluşturma
 export const createGoal = onRequest({
@@ -13,10 +14,17 @@ export const createGoal = onRequest({
     const { userId, ...goalData } = req.body;
 
     if (!userId) {
-      throw new HttpsError('invalid-argument', 'Kullanıcı ID\'si gerekli.');
+      throw new HttpsError('invalid-argument', `Kullanıcı ID'si gerekli.`);
     }
-    // TODO: Kullanıcı kimlik doğrulamasını burada yap
-    // Örneğin: const decodedToken = await admin.auth.verifyIdToken(req.headers.authorization); if(decodedToken.uid !== userId) throw new HttpsError("permission-denied");
+    const idToken = req.headers.authorization?.split('Bearer ')[1];
+    if (!idToken) {
+      throw new HttpsError('unauthenticated', `Kimlik doğrulama token'ı eksik.`);
+    }
+    
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    if (decodedToken.uid !== userId) {
+      throw new HttpsError('permission-denied', `Yetkisiz erişim. Kullanıcı ID'si eşleşmiyor.`);
+    }
 
     const newGoal = await GoalService.createGoal(goalData, userId);
     res.status(201).json({ success: true, data: newGoal });
@@ -39,11 +47,19 @@ export const getGoals = onRequest({
 
     const { userId } = req.query;
     if (!userId) {
-      throw new HttpsError('invalid-argument', 'Kullanıcı ID\'si gerekli.');
+      throw new HttpsError('invalid-argument', `Kullanıcı ID'si gerekli.`);
     }
-    // TODO: Kullanıcı kimlik doğrulamasını burada yap
+    const idToken = req.headers.authorization?.split('Bearer ')[1];
+    if (!idToken) {
+      throw new HttpsError('unauthenticated', `Kimlik doğrulama token'ı eksik.`);
+    }
+    
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    if (decodedToken.uid !== userId) {
+      throw new HttpsError('permission-denied', `Yetkisiz erişim. Kullanıcı ID'si eşleşmiyor.`);
+    }
 
-    // Bu API, tüm hedefleri listelemek için GoalService\'de bir metod gerektirecektir.
+    // Bu API, tüm hedefleri listelemek için GoalService'de bir metod gerektirecektir.
     // Şimdilik sadece örnek bir dönüş yapıyorum.
     res.status(200).json({ success: true, data: [] });
   } catch (error: any) {
@@ -66,9 +82,17 @@ export const updateGoal = onRequest({
     const { goalId, userId, ...updates } = req.body;
 
     if (!goalId || !userId) {
-      throw new HttpsError('invalid-argument', 'Hedef ID ve Kullanıcı ID\'si gerekli.');
+      throw new HttpsError('invalid-argument', `Hedef ID ve Kullanıcı ID'si gerekli.`);
     }
-    // TODO: Kullanıcı kimlik doğrulamasını burada yap
+    const idToken = req.headers.authorization?.split('Bearer ')[1];
+    if (!idToken) {
+      throw new HttpsError('unauthenticated', `Kimlik doğrulama token'ı eksik.`);
+    }
+    
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    if (decodedToken.uid !== userId) {
+      throw new HttpsError('permission-denied', `Yetkisiz erişim. Kullanıcı ID'si eşleşmiyor.`);
+    }
 
     await GoalService.updateGoal(goalId, updates, userId);
     res.status(200).json({ success: true, message: 'Hedef başarıyla güncellendi' });
@@ -92,9 +116,17 @@ export const deleteGoal = onRequest({
     const { goalId, userId } = req.body;
 
     if (!goalId || !userId) {
-      throw new HttpsError('invalid-argument', 'Hedef ID ve Kullanıcı ID\'si gerekli.');
+      throw new HttpsError('invalid-argument', `Hedef ID ve Kullanıcı ID'si gerekli.`);
     }
-    // TODO: Kullanıcı kimlik doğrulamasını burada yap
+    const idToken = req.headers.authorization?.split('Bearer ')[1];
+    if (!idToken) {
+      throw new HttpsError('unauthenticated', `Kimlik doğrulama token'ı eksik.`);
+    }
+    
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    if (decodedToken.uid !== userId) {
+      throw new HttpsError('permission-denied', `Yetkisiz erişim. Kullanıcı ID'si eşleşmiyor.`);
+    }
 
     await GoalService.deleteGoal(goalId, userId);
     res.status(200).json({ success: true, message: 'Hedef başarıyla silindi' });

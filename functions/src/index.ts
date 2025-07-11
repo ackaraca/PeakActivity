@@ -1,7 +1,5 @@
 import * as functions from "firebase-functions";
-import * as admin from "firebase-admin";
-
-admin.initializeApp(functions.config().firebase);
+import { admin, db, auth } from "./firebaseAdmin";
 
 import { Request, Response } from "express";
 import { linearRegression, linearRegressionLine, mean, standardDeviation } from "simple-statistics";
@@ -49,7 +47,7 @@ setGlobalOptions({
   timeoutSeconds: 60, // Varsayılan zaman aşımı süresi
   memory: "256MiB", // Varsayılan bellek boyutu
   concurrency: 50, // Bir instance tarafından aynı anda işlenebilecek istek sayısı
-  minInstances: 1, // Soğuk başlangıçları azaltmak için minimum instance sayısı
+  minInstances: 0, // Soğuk başlangıçları azaltmak için minimum instance sayısı
 });
 
 // Fonksiyon çağrısı optimizasyonu: İstemci tarafında gereksiz çağrıları en aza indirin ve fonksiyon içinde erken çıkışlar/veri filtreleme kullanın.
@@ -287,8 +285,6 @@ const globToRegex = (glob: string) => {
   return new RegExp(`^${pattern}$`, 'i');
 };
 
-admin.initializeApp();
-
 const calendarSyncService = new CalendarSyncService();
 
 // Zamanlanmış Fonksiyonlar
@@ -360,22 +356,42 @@ export const analyzeBehavioralTrends = functions.https.onRequest(async (request:
   trendingCategories.sort((a, b) => Math.abs(b.slope_per_day) - Math.abs(a.slope_per_day));
   const topTrendingCategories = trendingCategories.slice(0, 5);
 
-  // Seasonality Detection (simplified for this prompt - in a real scenario, this would be more complex)
-  const seasonality: { period: string; pattern: string }[] = [];
-  // Example: Basic weekly pattern detection (e.g., check if Fridays consistently lower)
-  const fridayDecreases = daily_totals.filter((day) => {
-    const date = new Date(day.date);
-    return date.getDay() === 5; // Friday
-  }).every((fridayData) => {
-    // Check if total activity on Friday is significantly lower than average for the week
-    // This is a placeholder and would need more robust logic.
-    const weeklyAverage = daily_totals.reduce((sum, d) => sum + Object.values(d.categories).reduce((s, v) => s + v, 0), 0) / daily_totals.length;
-    const fridayTotal = Object.values(fridayData.categories).reduce((s, v) => s + v, 0);
-    return fridayTotal < weeklyAverage * 0.7; // Example: 30% lower than weekly average
-  });
+  // Helper function to get day name
+  const getDayName = (dayIndex: number) => {
+    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+    return days[dayIndex];
+  };
 
-  if (fridayDecreases && daily_totals.filter(d => new Date(d.date).getDay() === 5).length > 2) {
-    seasonality.push({ period: "weekly", pattern: "Cuma günleri odaklanma düşüyor" });
+  // Seasonality Detection: Daha sağlam bir günlük/haftalık desen tespiti
+  const seasonality: { period: string; pattern: string }[] = [];
+
+  if (daily_totals.length > 7) { // Yeterli veri varsa haftalık desenleri ara
+    const dailySums: { [key: number]: number[] } = {}; // Günün haftası (0=Pazar, 6=Cumartesi) bazında toplam süreler
+    for (const day of daily_totals) {
+      const date = new Date(day.date);
+      const dayOfWeek = date.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+      const totalSecondsForDay = Object.values(day.categories).reduce((sum, v) => sum + v, 0);
+      if (!dailySums[dayOfWeek]) {
+        dailySums[dayOfWeek] = [];
+      }
+      dailySums[dayOfWeek].push(totalSecondsForDay);
+    }
+
+    // Haftalık ortalama aktivite süresi
+    const weeklyTotalAverage = daily_totals.reduce((sum, d) => sum + Object.values(d.categories).reduce((s, v) => s + v, 0), 0) / daily_totals.length;
+
+    for (const dayOfWeek in dailySums) {
+      const dayAverages = dailySums[dayOfWeek].length > 0 ? mean(dailySums[dayOfWeek]) : 0;
+      const dayStdDev = dailySums[dayOfWeek].length > 1 ? standardDeviation(dailySums[dayOfWeek]) : 0;
+
+      // Belirgin sapmaları tespit et
+      const deviationFactor = 0.3; // %30 sapma eşiği
+      if (dayAverages > weeklyTotalAverage * (1 + deviationFactor) && dayStdDev > 0) {
+        seasonality.push({ period: "weekly", pattern: `${getDayName(parseInt(dayOfWeek))} günleri ortalamanın üzerinde aktivite` });
+      } else if (dayAverages < weeklyTotalAverage * (1 - deviationFactor) && dayStdDev > 0) {
+        seasonality.push({ period: "weekly", pattern: `${getDayName(parseInt(dayOfWeek))} günleri ortalamanın altında aktivite` });
+      }
+    }
   }
 
   const summary = "Davranışsal desenler ve trend analizi sonuçları."; // Türkçe özet
@@ -397,7 +413,7 @@ export { categorizeContext };
 export { createAutomationRule, getAutomationRule, getAllAutomationRules, updateAutomationRule, deleteAutomationRule };
 export { saveActivity };
 export { createProject, getProject, updateProject, getAllProjects, deleteProject };
-export { predictProjectCompletion } from './api/project-prediction-ai-api';
+export { predictTaskCompletion } from './api/task-completion-prediction-api';
 export { createGoal, getGoal, updateGoal, deleteGoal, listGoals };
 export { createReport, getReport, updateReport, deleteReport, listReports, generateReportData } from "./api/report-management-api";
 export { createCustomEvent, getCustomEvent, updateCustomEvent, deleteCustomEvent, listCustomEvents } from "./api/custom-event-api";
@@ -440,12 +456,10 @@ export const applyCommunityRules = functions.https.onRequest(async (request: Req
     return;
   }
 
-  // Assuming CommunityRulesService is defined elsewhere or needs to be imported
-  // For now, we'll use a placeholder or remove if not needed
-  // const communityRulesService = new CommunityRulesService();
-  // const result = communityRulesService.matchCommunityRule(event, community_rules);
-  // response.status(200).json(result);
-  // return;
+  const communityRulesService = new CommunityRulesService(); // CommunityRulesService örneği oluştur
+  const result = communityRulesService.matchCommunityRule(event, community_rules);
+  response.status(200).json(result);
+  return;
 
   // Placeholder for actual community rule matching logic
   let matchedRule: CommunityRule | null = null;
