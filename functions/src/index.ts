@@ -1,43 +1,224 @@
 import * as functions from "firebase-functions";
-import { admin, db, auth } from "./firebaseAdmin";
+import * as admin from "firebase-admin";
+import { onActivityCreated, onActivityDeleted, onActivityUpdated } from "./triggers/firestore-triggers";
 
-import { Request, Response } from "express";
-import { linearRegression, linearRegressionLine, mean, standardDeviation } from "simple-statistics";
+// Mevcut API importları
+import { createActivity, updateActivity, deleteActivity, getActivity, getActivities, queryActivities } from "./api/activity-api";
+import { getAIInsight, generateAIInsight } from "./api/ai-insight-api";
+import { sendAINotification } from "./api/ai-notification-api";
+import { detectAnomalies, getAnomalyAlerts } from "./api/anomaly-detection-api";
+import { autoCategorizeEvent } from "./api/auto-categorization-api";
+import { createAutomaticEvent, getAutomaticEvents, updateAutomaticEvent, deleteAutomaticEvent } from "./api/automatic-event-api";
+import { createAutomationRule, getAutomationRules, updateAutomationRule, deleteAutomationRule } from "./api/automation-rule-api";
+import { analyzeBehavioralPatterns, getBehavioralPatterns } from "./api/behavioral-analysis-api";
+import { createCommunityRule, getCommunityRules, updateCommunityRule, deleteCommunityRule } from "./api/community-rules-api";
+import { contextualCategorize } from "./api/contextual-categorization-api";
+import { createCustomEvent, getCustomEvents, updateCustomEvent, deleteCustomEvent } from "./api/custom-event-api";
+import { startFocusMode, endFocusMode, getFocusModeStatus } from "./api/focus-mode-api";
+import { getFocusQualityScore } from "./api/focus-quality-score-api";
+import { createGoal, getGoals, updateGoal, deleteGoal } from "./api/goal-api";
+import { createGoalManagement, getGoalManagements, updateGoalManagement, deleteGoalManagement } from "./api/goal-management-api";
+import { authenticateGoogleCalendar, getGoogleCalendarEvents, createGoogleCalendarEvent, updateGoogleCalendarEvent, deleteGoogleCalendarEvent, listGoogleCalendars } from "./api/google-calendar-api";
+import { generateInsight } from "./api/insight-generation-api";
+import { getIntegrations, addIntegration, updateIntegration, deleteIntegration } from "./api/integration-api";
+import { getNotificationPreferences, updateNotificationPreferences } from "./api/notification-preferences-api";
+import { getProductivityScore } from "./api/productivity-score-api";
+import { getReports, generateReport } from "./api/report-management-api";
+import { getReminder, setReminder, deleteReminder } from "./api/reminder-api";
+import { getSettings, updateSettings } from "./api/settings-api";
+import { getUserProfile, updateUserProfile } from "./api/user-profile-api";
+import { getVisualizationData } from "./api/visualization-api";
 
-import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { setGlobalOptions } from 'firebase-functions/v2/options';
+// Yeni GenKit importları
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
+import { onCallGenkit, hasClaim } from 'firebase-functions/v2/https';
+import { defineSecret } from 'firebase-functions/params';
 
-import * as goalApi from './api/goal-api';
-import * as firestoreTriggers from './triggers/firestore-triggers';
-import { firestoreDailyBackup } from './triggers/backup-triggers';
-import { detectAnomalies } from './api/anomaly-detection-api';
-import { autoCategorize } from './api/auto-categorization-api';
-import { analyzeRealtimeBehavioralPattern } from './api/behavioral-analysis-api'; // Doğru API'yi içeri aktar
-import { matchCommunityRule } from './api/community-rules-api';
-import { CommunityRulesService } from './services/community-rules-service';
-import { ContextualCategorizationService } from './services/contextual-categorization-service';
-import { categorizeContext } from './api/contextual-categorization-api';
-import { calculateFocusQualityScore } from './api/focus-quality-score-api';
-import { createAutomationRule, getAutomationRule, getAllAutomationRules, updateAutomationRule, deleteAutomationRule } from './api/automation-rule-api';
-import { saveActivity } from './api/activity-api';
-import { createProject, getProject, updateProject, getAllProjects, deleteProject } from './api/project-prediction-api';
-import { predictProjectCompletion } from './api/project-prediction-ai-api';
-import { createGoal, getGoal, updateGoal, deleteGoal, listGoals } from "./api/goal-management-api";
-import { createReport, getReport, updateReport, deleteReport, listReports, generateReportData } from "./api/report-management-api";
-import { createCustomEvent, getCustomEvent, updateCustomEvent, deleteCustomEvent, listCustomEvents } from "./api/custom-event-api";
-import { generateInsight, listInsights, getInsight, deleteInsight } from "./api/insight-generation-api";
-import { getGoogleCalendarEvents, createGoogleCalendarEvent, updateGoogleCalendarEvent, deleteGoogleCalendarEvent, listGoogleCalendars } from "./api/google-calendar-api";
-import { createAutomaticCalendarEvents } from "./api/automatic-event-api";
-import { getTrelloTaskStatus, getJiraTaskStatus } from "./api/trello-jira-api";
-import { updateTrelloTaskStatus, updateJiraTaskStatus } from "./api/trello-jira-api";
-import { getTrelloProjectProgress, getJiraProjectProgress } from "./api/trello-jira-api";
-import { prepareMLTrainingData } from "./api/ml-data-api";
-import { predictTaskCompletion } from "./api/task-completion-prediction-api";
-import { trelloJiraWebhookHandler } from "./api/trello-jira-webhook-api";
-import { generateAIInsights } from "./api/ai-insight-api";
-import { createNotification, getNotification, updateNotification, deleteNotification, listNotifications } from "./api/notification-api";
-import { createFocusMode, getFocusMode, updateFocusMode, deleteFocusMode, listFocusModes, setActiveFocusMode } from "./api/focus-mode-api";
-import { CalendarSyncService } from './services/calendar-sync-service';
+// Firebase Admin SDK başlatılıyor
+admin.initializeApp();
+
+// Firebase Secret olarak Google AI API Anahtarı tanımlanıyor
+const googleAIapiKey = defineSecret("GEMINI_API_KEY");
+
+// GenKit başlatılıyor
+genkit({
+  plugins: [googleAI()],
+  // Gemini modelini varsayılan olarak kullan
+  // TODO: Gelecekte model konfigürasyonunu daha dinamik hale getirilebilir
+  model: googleAI.model('gemini-2.5-flash'),
+});
+
+// Örnek bir GenKit akışı tanımlama
+// Bu akış, verilen bir konu hakkında yapay zeka tarafından şiir oluşturur.
+export const generatePoemFlow = genkit.defineFlow(
+  {
+    name: 'generatePoem',
+    inputSchema: z.string(),
+    outputSchema: z.string(),
+  },
+  async (subject: string) => {
+    const { text } = await genkit.ai.generate(`Compose a poem about ${subject}.`);
+    return text;
+  },
+);
+
+// GenKit akışını bir Firebase Callable Cloud Function olarak dışa aktarma
+// Kimlik doğrulama politikası ve App Check zorunluluğu ile güvenlik sağlanıyor.
+export const callGenkitFlow = onCallGenkit(
+  {
+    secrets: [googleAIapiKey],
+    authPolicy: hasClaim('email_verified'), // Sadece e-postası doğrulanmış kullanıcıların erişmesine izin ver
+    enforceAppCheck: true,
+  },
+  generatePoemFlow,
+);
+
+// Mevcut dışa aktarımlar
+export { onActivityCreated, onActivityDeleted, onActivityUpdated };
+
+export const activityApi = {
+    createActivity: functions.https.onCall(createActivity),
+    updateActivity: functions.https.onCall(updateActivity),
+    deleteActivity: functions.https.onCall(deleteActivity),
+    getActivity: functions.https.onCall(getActivity),
+    getActivities: functions.https.onCall(getActivities),
+    queryActivities: functions.https.onCall(queryActivities)
+};
+
+export const aiInsightApi = {
+    getAIInsight: functions.https.onCall(getAIInsight),
+    generateAIInsight: functions.https.onCall(generateAIInsight),
+};
+
+export const aiNotificationApi = {
+    sendAINotification: functions.https.onCall(sendAINotification),
+};
+
+export const anomalyDetectionApi = {
+    detectAnomalies: functions.https.onCall(detectAnomalies),
+    getAnomalyAlerts: functions.https.onCall(getAnomalyAlerts),
+};
+
+export const autoCategorizationApi = {
+    autoCategorizeEvent: functions.https.onCall(autoCategorizeEvent),
+};
+
+export const automaticEventApi = {
+    createAutomaticEvent: functions.https.onCall(createAutomaticEvent),
+    getAutomaticEvents: functions.https.onCall(getAutomaticEvents),
+    updateAutomaticEvent: functions.https.onCall(updateAutomaticEvent),
+    deleteAutomaticEvent: functions.https.onCall(deleteAutomaticEvent),
+};
+
+export const automationRuleApi = {
+    createAutomationRule: functions.https.onCall(createAutomationRule),
+    getAutomationRules: functions.https.onCall(getAutomationRules),
+    updateAutomationRule: functions.https.onCall(updateAutomationRule),
+    deleteAutomationRule: functions.https.onCall(deleteAutomationRule),
+};
+
+export const behavioralAnalysisApi = {
+    analyzeBehavioralPatterns: functions.https.onCall(analyzeBehavioralPatterns),
+    getBehavioralPatterns: functions.https.onCall(getBehavioralPatterns),
+};
+
+export const communityRulesApi = {
+    createCommunityRule: functions.https.onCall(createCommunityRule),
+    getCommunityRules: functions.https.onCall(getCommunityRules),
+    updateCommunityRule: functions.https.onCall(updateCommunityRule),
+    deleteCommunityRule: functions.https.onCall(deleteCommunityRule),
+};
+
+export const contextualCategorizationApi = {
+    contextualCategorize: functions.https.onCall(contextualCategorize),
+};
+
+export const customEventApi = {
+    createCustomEvent: functions.https.onCall(createCustomEvent),
+    getCustomEvents: functions.https.onCall(getCustomEvents),
+    updateCustomEvent: functions.https.onCall(updateCustomEvent),
+    deleteCustomEvent: functions.https.onCall(deleteCustomEvent),
+};
+
+export const focusModeApi = {
+    startFocusMode: functions.https.onCall(startFocusMode),
+    endFocusMode: functions.https.onCall(endFocusMode),
+    getFocusModeStatus: functions.https.onCall(getFocusModeStatus),
+};
+
+export const focusQualityScoreApi = {
+    getFocusQualityScore: functions.https.onCall(getFocusQualityScore),
+};
+
+export const goalApi = {
+    createGoal: functions.https.onCall(createGoal),
+    getGoals: functions.https.onCall(getGoals),
+    updateGoal: functions.https.onCall(updateGoal),
+    deleteGoal: functions.https.onCall(deleteGoal),
+};
+
+export const goalManagementApi = {
+    createGoalManagement: functions.https.onCall(createGoalManagement),
+    getGoalManagements: functions.https.onCall(getGoalManagements),
+    updateGoalManagement: functions.https.onCall(updateGoalManagement),
+    deleteGoalManagement: functions.https.onCall(deleteGoalManagement),
+};
+
+export const googleCalendarApi = {
+    authenticateGoogleCalendar: functions.https.onCall(authenticateGoogleCalendar),
+    getGoogleCalendarEvents: functions.https.onCall(getGoogleCalendarEvents),
+    createGoogleCalendarEvent: functions.https.onCall(createGoogleCalendarEvent),
+    updateGoogleCalendarEvent: functions.https.onCall(updateGoogleCalendarEvent),
+    deleteGoogleCalendarEvent: functions.https.onCall(deleteGoogleCalendarEvent),
+    listGoogleCalendars: functions.https.onCall(listGoogleCalendars),
+};
+
+export const insightGenerationApi = {
+    generateInsight: functions.https.onCall(generateInsight),
+};
+
+export const integrationApi = {
+    getIntegrations: functions.https.onCall(getIntegrations),
+    addIntegration: functions.https.onCall(addIntegration),
+    updateIntegration: functions.https.onCall(updateIntegration),
+    deleteIntegration: functions.https.onCall(deleteIntegration),
+};
+
+export const notificationPreferencesApi = {
+    getNotificationPreferences: functions.https.onCall(getNotificationPreferences),
+    updateNotificationPreferences: functions.https.onCall(updateNotificationPreferences),
+};
+
+export const productivityScoreApi = {
+    getProductivityScore: functions.https.onCall(getProductivityScore),
+};
+
+export const reportManagementApi = {
+    getReports: functions.https.onCall(getReports),
+    generateReport: functions.https.onCall(generateReport),
+};
+
+export const reminderApi = {
+    getReminder: functions.https.onCall(getReminder),
+    setReminder: functions.https.onCall(setReminder),
+    deleteReminder: functions.https.onCall(deleteReminder),
+};
+
+export const settingsApi = {
+    getSettings: functions.https.onCall(getSettings),
+    updateSettings: functions.https.onCall(updateSettings),
+};
+
+export const userProfileApi = {
+    getUserProfile: functions.https.onCall(getUserProfile),
+    updateUserProfile: functions.https.onCall(updateUserProfile),
+};
+
+export const visualizationApi = {
+    getVisualizationData: functions.https.onCall(getVisualizationData),
+};
+
 
 // Global settings for all functions in this file
 setGlobalOptions({
