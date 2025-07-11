@@ -1,5 +1,31 @@
 # PeakActivity - Versiyon Geçmişi
 
+## v0.13.9-webapp-improvements-part4 (2025-07-11 04:46:35)
+
+### ✨ Yeni Özellikler
+- **Web Arayüzü - Bağlamsal Kategorizasyon Yönetimi:**
+    - Kullanıcıların özel bağlamsal kategorizasyon kuralları oluşturmasına, düzenlemesine ve silmesine olanak tanıyan (`ContextualCategorization.vue`) bileşeni geliştirildi.
+    - Bağlam metinlerini kategorize etmek için bir test aracı entegre edildi.
+    - `main.js` dosyasına `/contextual-categorization` rotası eklendi ve `Header.vue` dosyasına bu sayfaya yönlendiren bir navigasyon bağlantısı (`icon(name="tags")`) eklendi.
+- **Web Arayüzü - Hedef Takibi ve İlerleme Durumu Modülü:**
+    - Kullanıcıların hedeflerini görüntülemesi, oluşturması, düzenlemesi ve silmesi için (`Goals.vue`) bileşeni geliştirildi.
+    - Hedef ilerlemesini görselleştiren ilerleme çubukları eklendi.
+    - `main.js` dosyasına `/goals` rotası eklendi ve `Header.vue` dosyasına bu sayfaya yönlendiren bir navigasyon bağlantısı (`icon(name="bullseye")`) eklendi.
+- **Web Arayüzü - Raporlama ve Analiz Gösterge Tablosu:**
+    - Kullanıcıların özelleştirilebilir raporlar ve gösterge tabloları oluşturabilmesi ve yönetebilmesi için (`Reports.vue`) bileşeni geliştirildi.
+    - Rapor konfigürasyonlarını düzenleme, rapor verisi oluşturma ve silme işlevselliği eklendi.
+    - `main.js` dosyasına `/reports` rotası eklendi ve `Header.vue` dosyasına bu sayfaya yönlendiren bir navigasyon bağlantısı (`icon(name="chart-line")`) eklendi.
+
+### 🔧 Teknik İyileştirmeler
+- Frontend bileşenleri, Firebase Cloud Functions üzerindeki ilgili API uç noktalarını kullanarak veri çekme işlemleri için entegre edildi.
+- Kullanıcı arayüzünde yükleme durumları ve hata mesajları yönetimi iyileştirildi.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
+
+---
+
 ## v0.13.8-webapp-improvements-part3 (2025-07-11 04:38:15)
 
 ### ✨ Yeni Özellikler
