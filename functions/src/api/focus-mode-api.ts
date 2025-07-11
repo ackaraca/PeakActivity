@@ -1,6 +1,5 @@
 
-import * as functions from "firebase-functions";
-import { HttpsError } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { FocusModeService } from "../services/focus-mode-service";
 
 const focusModeService = new FocusModeService();
@@ -8,12 +7,12 @@ const focusModeService = new FocusModeService();
 /**
  * Firebase Function to create a new focus mode.
  */
-export const createFocusMode = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const createFocusMode = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { name, description, configuration } = data;
+  const userId = request.auth.uid;
+  const { name, description, configuration } = request.data;
 
   if (!name || !configuration) {
     throw new HttpsError('invalid-argument', 'Gerekli alanlar eksik: isim, konfigürasyon.');
@@ -34,12 +33,12 @@ export const createFocusMode = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to get a specific focus mode.
  */
-export const getFocusMode = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const getFocusMode = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { modeId } = data;
+  const userId = request.auth.uid;
+  const { modeId } = request.data;
 
   if (!modeId) {
     throw new HttpsError('invalid-argument', 'Mod kimliği eksik.');
@@ -59,12 +58,12 @@ export const getFocusMode = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to update an existing focus mode.
  */
-export const updateFocusMode = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const updateFocusMode = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { modeId, updates } = data;
+  const userId = request.auth.uid;
+  const { modeId, updates } = request.data;
 
   if (!modeId || !updates) {
     throw new HttpsError('invalid-argument', 'Mod kimliği veya güncellemeler eksik.');
@@ -84,12 +83,12 @@ export const updateFocusMode = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to delete a specific focus mode.
  */
-export const deleteFocusMode = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const deleteFocusMode = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { modeId } = data;
+  const userId = request.auth.uid;
+  const { modeId } = request.data;
 
   if (!modeId) {
     throw new HttpsError('invalid-argument', 'Mod kimliği eksik.');
@@ -109,11 +108,11 @@ export const deleteFocusMode = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to list all focus modes for a user.
  */
-export const listFocusModes = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const listFocusModes = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     const modes = await focusModeService.listFocusModes(userId);
@@ -126,12 +125,12 @@ export const listFocusModes = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to set a specific focus mode as active for a user.
  */
-export const setActiveFocusMode = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const setActiveFocusMode = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { modeId } = data;
+  const userId = request.auth.uid;
+  const { modeId } = request.data;
 
   if (!modeId) {
     throw new HttpsError('invalid-argument', 'Mod kimliği eksik.');

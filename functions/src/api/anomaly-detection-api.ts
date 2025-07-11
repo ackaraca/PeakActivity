@@ -1,20 +1,20 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { AnomalyDetectionService } from '../services/anomaly-detection-service';
 
 const anomalyDetectionService = new AnomalyDetectionService();
 
-export const detectAnomalies = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+export const detectAnomalies = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'The function must be called while authenticated.'
     );
   }
 
-  const dailyTotals = data.dailyTotals;
+  const dailyTotals = request.data.dailyTotals;
 
   if (!dailyTotals || !Array.isArray(dailyTotals)) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'invalid-argument',
       'The dailyTotals array is required.'
     );
@@ -24,7 +24,7 @@ export const detectAnomalies = functions.https.onCall(async (data, context) => {
     const result = anomalyDetectionService.detectAnomalies(dailyTotals);
     return { status: 'success', data: result };
   } catch (error: any) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'internal',
       error.message || 'An unknown error occurred.'
     );

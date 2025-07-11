@@ -1,6 +1,5 @@
 
-import * as functions from "firebase-functions";
-import { HttpsError } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { InsightGenerationService } from "../services/insight-generation-service";
 
 const insightService = new InsightGenerationService();
@@ -8,12 +7,12 @@ const insightService = new InsightGenerationService();
 /**
  * Firebase Function to generate a new insight.
  */
-export const generateInsight = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const generateInsight = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { insightType, insightData } = data;
+  const userId = request.auth.uid;
+  const { insightType, insightData } = request.data;
 
   if (!insightType || !insightData) {
     throw new HttpsError('invalid-argument', 'Gerekli alanlar eksik: içgörü tipi veya içgörü verileri.');
@@ -30,11 +29,11 @@ export const generateInsight = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to list all insights for a user.
  */
-export const listInsights = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const listInsights = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     const insights = await insightService.listInsights(userId);
@@ -47,12 +46,12 @@ export const listInsights = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to get a specific insight.
  */
-export const getInsight = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const getInsight = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { insightId } = data;
+  const userId = request.auth.uid;
+  const { insightId } = request.data;
 
   if (!insightId) {
     throw new HttpsError('invalid-argument', 'İçgörü kimliği eksik.');
@@ -72,12 +71,12 @@ export const getInsight = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to delete a specific insight.
  */
-export const deleteInsight = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const deleteInsight = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { insightId } = data;
+  const userId = request.auth.uid;
+  const { insightId } = request.data;
 
   if (!insightId) {
     throw new HttpsError('invalid-argument', 'İçgörü kimliği eksik.');

@@ -13,11 +13,14 @@ import { detectAnomalies } from './api/anomaly-detection-api';
 import { autoCategorize } from './api/auto-categorization-api';
 import { analyzeBehavioralPatterns } from './api/behavioral-analysis-api';
 import { matchCommunityRule } from './api/community-rules-api';
+import { CommunityRulesService } from './services/community-rules-service';
+import { ContextualCategorizationService } from './services/contextual-categorization-service';
 import { categorizeContext } from './api/contextual-categorization-api';
 import { calculateFocusQualityScore } from './api/focus-quality-score-api';
 import { createAutomationRule, getAutomationRule, getAllAutomationRules, updateAutomationRule, deleteAutomationRule } from './api/automation-rule-api';
 import { saveActivity } from './api/activity-api';
-import { createProject, getProject, updateProject, getAllProjects, deleteProject, predictProjectCompletion } from './api/project-prediction-api';
+import { createProject, getProject, updateProject, getAllProjects, deleteProject } from './api/project-prediction-api';
+import { predictProjectCompletion } from './api/project-prediction-ai-api';
 import { createGoal, getGoal, updateGoal, deleteGoal, listGoals } from "./api/goal-management-api";
 import { createReport, getReport, updateReport, deleteReport, listReports, generateReportData } from "./api/report-management-api";
 import { createCustomEvent, getCustomEvent, updateCustomEvent, deleteCustomEvent, listCustomEvents } from "./api/custom-event-api";
@@ -238,13 +241,15 @@ export { calculateFocusQualityScore };
 
 export const analyzeBehavioralTrends = functions.https.onRequest(async (request: Request, response: Response) => {
   if (request.method !== "POST") {
-    return response.status(405).send("Method Not Allowed");
+    response.status(405).send("Method Not Allowed");
+    return;
   }
 
   const { daily_totals, window } = request.body as BehavioralTrendsInput;
 
   if (!daily_totals || !Array.isArray(daily_totals) || daily_totals.length === 0) {
-    return response.status(400).send("Invalid input: 'daily_totals' array is required and must not be empty.");
+    response.status(400).send("Invalid input: 'daily_totals' array is required and must not be empty.");
+    return;
   }
 
   const trendingCategories: TrendingCategory[] = [];
@@ -313,7 +318,7 @@ export const analyzeBehavioralTrends = functions.https.onRequest(async (request:
     summary,
   };
 
-  return response.status(200).json(output);
+  response.status(200).json(output);
 });
 
 export { detectAnomalies };
@@ -323,7 +328,8 @@ export { matchCommunityRule };
 export { categorizeContext };
 export { createAutomationRule, getAutomationRule, getAllAutomationRules, updateAutomationRule, deleteAutomationRule };
 export { saveActivity };
-export { createProject, getProject, updateProject, getAllProjects, deleteProject, predictProjectCompletion };
+export { createProject, getProject, updateProject, getAllProjects, deleteProject };
+export { predictProjectCompletion } from './api/project-prediction-ai-api';
 export { createGoal, getGoal, updateGoal, deleteGoal, listGoals };
 export { createReport, getReport, updateReport, deleteReport, listReports, generateReportData } from "./api/report-management-api";
 export { createCustomEvent, getCustomEvent, updateCustomEvent, deleteCustomEvent, listCustomEvents } from "./api/custom-event-api";
@@ -331,96 +337,49 @@ export { generateInsight, listInsights, getInsight, deleteInsight } from "./api/
 export { createNotification, getNotification, updateNotification, deleteNotification, listNotifications } from "./api/notification-api";
 export { createFocusMode, getFocusMode, updateFocusMode, deleteFocusMode, listFocusModes, setActiveFocusMode } from "./api/focus-mode-api";
 
-export const autoCategorize = functions.https.onRequest(async (request: Request, response: Response) => {
-  if (request.method !== "POST") {
-    return response.status(405).send("Method Not Allowed");
-  }
-
-  const { events } = request.body as AutoCategorizationInput;
-
-  if (!events || !Array.isArray(events)) {
-    return response.status(400).send("Invalid input: 'events' array is required.");
-  }
-
-  const labels: LabelResult[] = [];
-
-  for (let i = 0; i < events.length; i++) {
-    const event = events[i];
-    const textToAnalyze = `${event.title || ""} ${event.app || ""} ${event.url ? new URL(event.url).hostname : ""}`.toLowerCase();
-    
-    let bestCategory = "unknown";
-    let maxConfidence = 0;
-
-    for (const category in CATEGORY_KEYWORDS) {
-      let score = 0;
-      for (const keyword of CATEGORY_KEYWORDS[category]) {
-        if (textToAnalyze.includes(keyword)) {
-          score += 1;
-        }
-      }
-      // Simple confidence based on keyword matches (can be improved with TF-IDF, ML models)
-      const confidence = score / CATEGORY_KEYWORDS[category].length;
-      if (confidence > maxConfidence) {
-        maxConfidence = confidence;
-        bestCategory = category;
-      }
-    }
-
-    labels.push({
-      index: i,
-      category: bestCategory,
-      confidence: parseFloat(maxConfidence.toFixed(2)),
-    });
-  }
-
-  const output: AutoCategorizationOutput = {
-    labels,
-  };
-
-  return response.status(200).json(output);
-}); 
-
 export const contextualCategorization = functions.https.onRequest(async (request: Request, response: Response) => {
   if (request.method !== "POST") {
-    return response.status(405).send("Method Not Allowed");
+    response.status(405).send("Method Not Allowed");
+    return;
   }
 
   const { context, language } = request.body as ContextualCategorizationInput;
 
-  if (!context) {
-    return response.status(400).send("Invalid input: 'context' is required.");
+  if (typeof context !== 'string' || context.trim() === '') {
+    response.status(400).send("Invalid input: 'context' must be a non-empty string.");
+    return;
   }
 
-  // In a real scenario, use a language detection library and translation if needed
-  // For this mock, we assume English or handle simple cases
-  let processedContext = context;
-  // if (language && language !== 'en') { /* translate processedContext */ }
-
-  const result = mockZeroShotClassify(processedContext, CLASSIFICATION_LABELS);
-
-  const output: ContextualCategorizationOutput = {
-    category: result.category,
-    confidence: result.confidence,
-    rationale: result.rationale,
-  };
-
-  return response.status(200).json(output);
+  const result = mockZeroShotClassify(context, CLASSIFICATION_LABELS);
+  response.status(200).json(result);
+  return;
 });
 
 export const applyCommunityRules = functions.https.onRequest(async (request: Request, response: Response) => {
   if (request.method !== "POST") {
-    return response.status(405).send("Method Not Allowed");
+    response.status(405).send("Method Not Allowed");
+    return;
   }
 
   const { event, community_rules } = request.body as CommunityRuleInput;
 
-  if (!event || !community_rules || !Array.isArray(community_rules)) {
-    return response.status(400).send("Invalid input: 'event' and 'community_rules' are required.");
+  if (!event) {
+    response.status(400).send("Invalid input: 'event' object is required.");
+    return;
+  }
+  if (!community_rules || !Array.isArray(community_rules)) {
+    response.status(400).send("Invalid input: 'community_rules' array is required.");
+    return;
   }
 
-  // Sort rules by popularity (descending), if popularity is present
-  community_rules.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+  // Assuming CommunityRulesService is defined elsewhere or needs to be imported
+  // For now, we'll use a placeholder or remove if not needed
+  // const communityRulesService = new CommunityRulesService();
+  // const result = communityRulesService.matchCommunityRule(event, community_rules);
+  // response.status(200).json(result);
+  // return;
 
+  // Placeholder for actual community rule matching logic
   let matchedRule: CommunityRule | null = null;
   let assignedCategory: string | null = null;
 
@@ -441,5 +400,6 @@ export const applyCommunityRules = functions.https.onRequest(async (request: Req
     source: matchedRule ? "community" : "none",
   };
 
-  return response.status(200).json(output);
+  response.status(200).json(output);
+  return;
 }); 

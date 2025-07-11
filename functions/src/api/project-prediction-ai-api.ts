@@ -1,20 +1,20 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { ProjectPredictionAIService } from '../services/project-prediction-ai-service';
 
 const projectPredictionAIService = new ProjectPredictionAIService();
 
-export const predictProjectCompletion = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+export const predictProjectCompletion = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'The function must be called while authenticated.'
     );
   }
-  const userId = context.auth.uid;
-  const { projectId } = data;
+  const userId = request.auth.uid;
+  const { projectId } = request.data;
 
   if (typeof projectId !== 'string' || projectId.trim() === '') {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'invalid-argument',
       'Project ID is required.'
     );
@@ -24,7 +24,7 @@ export const predictProjectCompletion = functions.https.onCall(async (data, cont
     const prediction = await projectPredictionAIService.predictProjectCompletion(userId, projectId);
     return { status: 'success', data: prediction };
   } catch (error: any) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'internal',
       error.message || 'Failed to predict project completion.'
     );

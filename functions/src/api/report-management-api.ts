@@ -1,6 +1,5 @@
 
-import * as functions from "firebase-functions";
-import { HttpsError } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { ReportManagementService } from "../services/report-management-service";
 
 const reportService = new ReportManagementService();
@@ -8,12 +7,12 @@ const reportService = new ReportManagementService();
 /**
  * Firebase Function to create a new report or dashboard.
  */
-export const createReport = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const createReport = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { name, description, type, configuration } = data;
+  const userId = request.auth.uid;
+  const { name, description, type, configuration } = request.data;
 
   if (!name || !type || !configuration) {
     throw new HttpsError('invalid-argument', 'Gerekli alanlar eksik: isim, tip, konfigürasyon.');
@@ -35,12 +34,12 @@ export const createReport = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to get a specific report or dashboard.
  */
-export const getReport = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const getReport = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { reportId } = data;
+  const userId = request.auth.uid;
+  const { reportId } = request.data;
 
   if (!reportId) {
     throw new HttpsError('invalid-argument', 'Rapor kimliği eksik.');
@@ -60,12 +59,12 @@ export const getReport = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to update an existing report or dashboard.
  */
-export const updateReport = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const updateReport = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { reportId, updates } = data;
+  const userId = request.auth.uid;
+  const { reportId, updates } = request.data;
 
   if (!reportId || !updates) {
     throw new HttpsError('invalid-argument', 'Rapor kimliği veya güncellemeler eksik.');
@@ -85,12 +84,12 @@ export const updateReport = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to delete a specific report or dashboard.
  */
-export const deleteReport = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const deleteReport = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { reportId } = data;
+  const userId = request.auth.uid;
+  const { reportId } = request.data;
 
   if (!reportId) {
     throw new HttpsError('invalid-argument', 'Rapor kimliği eksik.');
@@ -110,11 +109,11 @@ export const deleteReport = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to list all reports and dashboards for a user.
  */
-export const listReports = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const listReports = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     const reports = await reportService.listReports(userId);
@@ -127,12 +126,12 @@ export const listReports = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to generate data for a specific report or dashboard.
  */
-export const generateReportData = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const generateReportData = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { reportId } = data;
+  const userId = request.auth.uid;
+  const { reportId } = request.data;
 
   if (!reportId) {
     throw new HttpsError('invalid-argument', 'Rapor kimliği eksik.');

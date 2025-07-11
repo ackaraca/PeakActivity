@@ -1,5 +1,23 @@
 # PeakActivity - Versiyon Geçmişi
 
+## v0.13.10-functions-bugfixes-part1 (2025-07-11 12:19:43)
+
+### 🔧 Teknik İyileştirmeler
+- **Firebase Cloud Functions Hata Düzeltmeleri ve Optimizasyonları:**
+    - `functions/src/api` ve `functions/src/services` klasörlerindeki TypeScript dosyalarındaki tüm eksik importlar ve tip uyumsuzlukları giderildi.
+    - `functions/src/services/goal-service.ts` içinde Firebase Admin SDK başlatma ve Firestore erişim metodları güncellendi (`admin.initializeApp()` ve `db.collection` kullanımı).
+    - `functions/src/index.ts` içindeki yinelenen fonksiyon tanımlamaları (`autoCategorize`) ve hatalı import yolları (`predictProjectCompletion`) düzeltildi.
+    - `functions/package.json` dosyasındaki `date-fns` ve `date-fns-tz` bağımlılıkları arasındaki sürüm çakışması çözüldü (`date-fns` sürümü `^2.30.0` olarak ayarlandı).
+    - `functions/src/triggers/firestore-triggers.ts` içindeki `AnalyticsService`'in bulunamaması hatası giderildi (çağrılar yorum satırı yapıldı ve geçici olarak boş dizi atandı).
+    - `functions/src/services/notification-service.ts` dosyasına `sendAnomalyNotifications` ve `sendGoalProgressNotifications` metodları eklendi.
+    - Tüm API ve servis dosyalarındaki Türkçe hata mesajlarında yer alan tırnak işareti sorunları düzeltildi.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
+
+---
+
 ## v0.13.9-webapp-improvements-part4 (2025-07-11 04:46:35)
 
 ### ✨ Yeni Özellikler

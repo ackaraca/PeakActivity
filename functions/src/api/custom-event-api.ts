@@ -1,6 +1,5 @@
 
-import * as functions from "firebase-functions";
-import { HttpsError } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { CustomEventService } from "../services/custom-event-service";
 
 const customEventService = new CustomEventService();
@@ -8,12 +7,12 @@ const customEventService = new CustomEventService();
 /**
  * Firebase Function to create a new custom event.
  */
-export const createCustomEvent = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const createCustomEvent = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { name, description, type, details } = data;
+  const userId = request.auth.uid;
+  const { name, description, type, details } = request.data;
 
   if (!name || !type || !details) {
     throw new HttpsError('invalid-argument', 'Gerekli alanlar eksik: isim, tip, detaylar.');
@@ -35,12 +34,12 @@ export const createCustomEvent = functions.https.onCall(async (data, context) =>
 /**
  * Firebase Function to get a specific custom event.
  */
-export const getCustomEvent = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const getCustomEvent = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { eventId } = data;
+  const userId = request.auth.uid;
+  const { eventId } = request.data;
 
   if (!eventId) {
     throw new HttpsError('invalid-argument', 'Etkinlik kimliği eksik.');
@@ -60,12 +59,12 @@ export const getCustomEvent = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to update an existing custom event.
  */
-export const updateCustomEvent = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const updateCustomEvent = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { eventId, updates } = data;
+  const userId = request.auth.uid;
+  const { eventId, updates } = request.data;
 
   if (!eventId || !updates) {
     throw new HttpsError('invalid-argument', 'Etkinlik kimliği veya güncellemeler eksik.');
@@ -85,12 +84,12 @@ export const updateCustomEvent = functions.https.onCall(async (data, context) =>
 /**
  * Firebase Function to delete a specific custom event.
  */
-export const deleteCustomEvent = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const deleteCustomEvent = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { eventId } = data;
+  const userId = request.auth.uid;
+  const { eventId } = request.data;
 
   if (!eventId) {
     throw new HttpsError('invalid-argument', 'Etkinlik kimliği eksik.');
@@ -110,11 +109,11 @@ export const deleteCustomEvent = functions.https.onCall(async (data, context) =>
 /**
  * Firebase Function to list all custom events for a user.
  */
-export const listCustomEvents = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const listCustomEvents = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     const events = await customEventService.listCustomEvents(userId);

@@ -93,4 +93,38 @@ export class NotificationService {
     const snapshot = await db.collection(`users/${userId}/notifications`).orderBy('timestamp', 'desc').get();
     return snapshot.docs.map(doc => doc.data() as NotificationDocument);
   }
+
+  /**
+   * Sends anomaly notifications to a user.
+   * @param userId The ID of the user.
+   * @param anomalies An array of anomaly data.
+   */
+  static async sendAnomalyNotifications(userId: string, anomalies: any[]): Promise<void> {
+    for (const anomaly of anomalies) {
+      const message = `Aykırı aktivite tespit edildi: ${anomaly.date} tarihinde ${anomaly.deviation_percent}% sapma.`;
+      await new NotificationService().createNotification(userId, {
+        title: 'Anomali Tespit Edildi',
+        message,
+        type: 'alert',
+        related_entity_id: anomaly.date, // Örnek olarak anomali tarihi
+      });
+    }
+  }
+
+  /**
+   * Sends goal progress notifications to a user.
+   * @param userId The ID of the user.
+   * @param goalUpdates An object containing goal update data.
+   */
+  static async sendGoalProgressNotifications(userId: string, goalUpdates: any): Promise<void> {
+    // goalUpdates objesini parse edip daha anlamlı mesajlar oluşturabiliriz.
+    // Şimdilik basit bir mesaj gönderelim.
+    const message = `Hedeflerinizde ilerleme kaydedildi. Detaylar için kontrol edin.`;
+    await new NotificationService().createNotification(userId, {
+      title: 'Hedef İlerlemesi',
+      message,
+      type: 'goal_progress',
+      // related_entity_id: goalUpdates.goalId, // İlgili hedef ID'si eklenebilir
+    });
+  }
 } 

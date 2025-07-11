@@ -1,6 +1,4 @@
-
-import * as functions from "firebase-functions";
-import { HttpsError } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { GoalManagementService } from "../services/goal-management-service";
 
 const goalService = new GoalManagementService();
@@ -8,12 +6,12 @@ const goalService = new GoalManagementService();
 /**
  * Firebase Function to create a new goal.
  */
-export const createGoal = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const createGoal = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { title, description, type, target_duration, target_daily_duration, target_weekly_duration, target_count, current_count, target_criteria } = data;
+  const userId = request.auth.uid;
+  const { title, description, type, target_duration, target_daily_duration, target_weekly_duration, target_count, current_count, target_criteria } = request.data;
 
   if (!title || !type || !target_criteria) {
     throw new HttpsError('invalid-argument', 'Gerekli alanlar eksik: başlık, tip, hedef kriterleri.');
@@ -30,6 +28,12 @@ export const createGoal = functions.https.onCall(async (data, context) => {
       target_count,
       current_count,
       target_criteria,
+      progress: {
+        current_duration: 0,
+        current_streak: 0,
+        longest_streak: 0,
+        last_updated: Date.now(),
+      },
     });
     return { success: true, goal: newGoal };
   } catch (error: any) {
@@ -40,12 +44,12 @@ export const createGoal = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to get a specific goal.
  */
-export const getGoal = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const getGoal = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { goalId } = data;
+  const userId = request.auth.uid;
+  const { goalId } = request.data;
 
   if (!goalId) {
     throw new HttpsError('invalid-argument', 'Hedef kimliği eksik.');
@@ -65,12 +69,12 @@ export const getGoal = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to update an existing goal.
  */
-export const updateGoal = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const updateGoal = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { goalId, updates } = data;
+  const userId = request.auth.uid;
+  const { goalId, updates } = request.data;
 
   if (!goalId || !updates) {
     throw new HttpsError('invalid-argument', 'Hedef kimliği veya güncellemeler eksik.');
@@ -90,12 +94,12 @@ export const updateGoal = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to delete a specific goal.
  */
-export const deleteGoal = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const deleteGoal = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
-  const { goalId } = data;
+  const userId = request.auth.uid;
+  const { goalId } = request.data;
 
   if (!goalId) {
     throw new HttpsError('invalid-argument', 'Hedef kimliği eksik.');
@@ -115,11 +119,11 @@ export const deleteGoal = functions.https.onCall(async (data, context) => {
 /**
  * Firebase Function to list all goals for a user.
  */
-export const listGoals = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
+export const listGoals = onCall(async (request) => {
+  if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Kullanıcı kimliği doğrulanmamış.');
   }
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     const goals = await goalService.listGoals(userId);

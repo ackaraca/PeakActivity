@@ -1,28 +1,28 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { CommunityRulesService } from '../services/community-rules-service';
 
 const communityRulesService = new CommunityRulesService();
 
-export const matchCommunityRule = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+export const matchCommunityRule = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'The function must be called while authenticated.'
     );
   }
 
-  const { event, communityRules } = data;
+  const { event, communityRules } = request.data;
 
   if (!event) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'invalid-argument',
-      'The \'event\' object is required.'
+      "The 'event' object is required."
     );
   }
   if (!communityRules || !Array.isArray(communityRules)) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'invalid-argument',
-      'The \'communityRules\' array is required.'
+      "The 'communityRules' array is required."
     );
   }
 
@@ -30,7 +30,7 @@ export const matchCommunityRule = functions.https.onCall(async (data, context) =
     const result = communityRulesService.matchCommunityRule(event, communityRules);
     return { status: 'success', data: result };
   } catch (error: any) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'internal',
       error.message || 'An unknown error occurred.'
     );

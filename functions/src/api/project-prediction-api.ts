@@ -1,21 +1,21 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { ProjectPredictionService } from '../services/project-prediction-service';
 
 const projectPredictionService = new ProjectPredictionService();
 
 // Create Project API
-export const createProject = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+export const createProject = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'The function must be called while authenticated.'
     );
   }
-  const userId = context.auth.uid;
-  const { title, description, status, start_date, due_date, associated_goals, associated_tasks } = data;
+  const userId = request.auth.uid;
+  const { title, description, status, start_date, due_date, associated_goals, associated_tasks } = request.data;
 
   if (typeof title !== 'string' || title.trim() === '') {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'invalid-argument',
       'Project title is required.'
     );
@@ -33,7 +33,7 @@ export const createProject = functions.https.onCall(async (data, context) => {
     });
     return { status: 'success', data: newProject };
   } catch (error: any) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'internal',
       error.message || 'Failed to create project.'
     );
@@ -41,18 +41,18 @@ export const createProject = functions.https.onCall(async (data, context) => {
 });
 
 // Get Project API
-export const getProject = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+export const getProject = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'The function must be called while authenticated.'
     );
   }
-  const userId = context.auth.uid;
-  const { projectId } = data;
+  const userId = request.auth.uid;
+  const { projectId } = request.data;
 
   if (typeof projectId !== 'string' || projectId.trim() === '') {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'invalid-argument',
       'Project ID is required.'
     );
@@ -61,14 +61,14 @@ export const getProject = functions.https.onCall(async (data, context) => {
   try {
     const project = await projectPredictionService.getProject(userId, projectId);
     if (!project) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'not-found',
         'Project not found.'
       );
     }
     return { status: 'success', data: project };
   } catch (error: any) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'internal',
       error.message || 'Failed to get project.'
     );
@@ -76,24 +76,24 @@ export const getProject = functions.https.onCall(async (data, context) => {
 });
 
 // Update Project API
-export const updateProject = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+export const updateProject = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'The function must be called while authenticated.'
     );
   }
-  const userId = context.auth.uid;
-  const { projectId, updates } = data;
+  const userId = request.auth.uid;
+  const { projectId, updates } = request.data;
 
   if (typeof projectId !== 'string' || projectId.trim() === '') {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'invalid-argument',
       'Project ID is required.'
     );
   }
   if (typeof updates !== 'object' || updates === null) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'invalid-argument',
       'Updates object is required.'
     );
@@ -102,14 +102,14 @@ export const updateProject = functions.https.onCall(async (data, context) => {
   try {
     const updatedProject = await projectPredictionService.updateProject(userId, projectId, updates);
     if (!updatedProject) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'not-found',
         'Project not found.'
       );
     }
     return { status: 'success', data: updatedProject };
   } catch (error: any) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'internal',
       error.message || 'Failed to update project.'
     );
@@ -117,20 +117,20 @@ export const updateProject = functions.https.onCall(async (data, context) => {
 });
 
 // Get All Projects API
-export const getAllProjects = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+export const getAllProjects = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'The function must be called while authenticated.'
     );
   }
-  const userId = context.auth.uid;
+  const userId = request.auth.uid;
 
   try {
     const projects = await projectPredictionService.getAllProjects(userId);
     return { status: 'success', data: projects };
   } catch (error: any) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'internal',
       error.message || 'Failed to get all projects.'
     );
@@ -138,18 +138,18 @@ export const getAllProjects = functions.https.onCall(async (data, context) => {
 });
 
 // Delete Project API
-export const deleteProject = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+export const deleteProject = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'The function must be called while authenticated.'
     );
   }
-  const userId = context.auth.uid;
-  const { projectId } = data;
+  const userId = request.auth.uid;
+  const { projectId } = request.data;
 
   if (typeof projectId !== 'string' || projectId.trim() === '') {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'invalid-argument',
       'Project ID is required.'
     );
@@ -159,7 +159,7 @@ export const deleteProject = functions.https.onCall(async (data, context) => {
     await projectPredictionService.deleteProject(userId, projectId);
     return { status: 'success' };
   } catch (error: any) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'internal',
       error.message || 'Failed to delete project.'
     );

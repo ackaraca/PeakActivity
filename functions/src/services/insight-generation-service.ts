@@ -49,19 +49,20 @@ export class InsightGenerationService {
       case 'anomaly_summary':
         // Simulate calling anomaly detection service
         const anomalies = await this.anomalyService.detectAnomalies(data.dailyTotals);
-        summary = `Aykırılık özeti oluşturuldu. Toplam ${anomalies.length} aykırılık tespit edildi.`;
+        summary = `Aykırılık özeti oluşturuldu. Toplam ${anomalies.anomalies.length} aykırılık tespit edildi.`;
         details = { anomalies };
         break;
       case 'behavioral_trend':
         // Simulate calling behavioral analysis service
         const trends = await this.behavioralService.analyzeBehavioralPatterns(data.dailyTotals, data.window);
-        summary = `Davranışsal eğilim özeti oluşturuldu. Tespit edilen eğilimler: ${trends.join(', ')}.`;
+        const trendingCategoryNames = trends.trending_categories.map(tc => tc.category);
+        summary = `Davranışsal eğilim özeti oluşturuldu. Tespit edilen eğilimler: ${trendingCategoryNames.join(', ')}.`;
         details = { trends };
         break;
       case 'focus_insight':
         // Simulate calling focus quality score service
-        const focusScore = await this.focusService.calculateFocusQualityScore(data.events, data.user_tz);
-        summary = `Odaklanma kalitesi içgörüsü oluşturuldu. Ortalama odaklanma puanı: ${focusScore.average_focus_score}.`;
+        const focusScore = this.focusService.calculateFocusQualityScores(data.events, data.user_tz);
+        summary = `Odaklanma kalitesi içgörüsü oluşturuldu. Ortalama odaklanma puanı: ${focusScore.daily_average}.`;
         details = { focusScore };
         break;
       case 'goal_progress_summary':

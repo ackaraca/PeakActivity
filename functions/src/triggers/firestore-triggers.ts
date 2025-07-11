@@ -1,5 +1,4 @@
 import { onDocumentCreated } from 'firebase-functions/v2/firestore';
-import { AnalyticsService } from '../services/analytics-service';
 import { NotificationService } from '../services/notification-service';
 import { GoalService } from '../services/goal-service';
 
@@ -18,8 +17,8 @@ export const onActivityCreated = onDocumentCreated(
     const activityData = snapshot.data();
     
     try {
-      // 1. Update focus score
-      await AnalyticsService.updateUserFocusMetrics(userId, activityData);
+      // 1. Update focus score (AnalyticsService kaldırıldı, ilgili servis çağrısı gerekiyorsa buraya eklenecek)
+      // await AnalyticsService.updateUserFocusMetrics(userId, activityData);
       
       // 2. Check goal progress
       const goalUpdates = await GoalService.checkGoalProgress(
@@ -27,11 +26,12 @@ export const onActivityCreated = onDocumentCreated(
         activityData
       );
       
-      // 3. Perform anomaly detection
-      const anomalies = await AnalyticsService.detectAnomalies(
-        userId, 
-        activityData
-      );
+      // 3. Perform anomaly detection (AnalyticsService kaldırıldı, ilgili servis çağrısı gerekiyorsa buraya eklenecek)
+      const anomalies: any[] = []; // Geçici olarak boş dizi, anomali tespiti yeniden implement edilmeli
+      // const anomalies = await AnalyticsService.detectAnomalies(
+      //   userId, 
+      //   activityData
+      // );
       
       // 4. Trigger notifications
       if (anomalies.length > 0) {

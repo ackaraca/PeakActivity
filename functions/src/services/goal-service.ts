@@ -1,5 +1,7 @@
-import { admin } from '../config/firebase-admin';
-import { AppError, ValidationError, NotFoundError } from '../utils/error-handler';
+import * as admin from 'firebase-admin';
+
+admin.initializeApp();
+const db = admin.firestore();
 
 export interface Goal {
   id: string;
@@ -32,9 +34,9 @@ export class GoalService {
   /**
    * Yeni bir hedef oluşturur
    */
-  static async createGoal(goalData: Omit<Goal, 'id' | 'createdAt' | 'updatedAt' | 'version' | 'progress'>, userId: string): Promise<Goal> {
+  static async createGoal(goalData: Omit<Goal, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'version' | 'progress'>, userId: string): Promise<Goal> {
     try {
-      const newGoalRef = admin.firestore.collection('users').doc(userId).collection('goals').doc();
+      const newGoalRef = db.collection('users').doc(userId).collection('goals').doc();
       const newGoal: Goal = {
         id: newGoalRef.id,
         userId,
@@ -52,8 +54,8 @@ export class GoalService {
 
       await newGoalRef.set(newGoal);
       return newGoal;
-    } catch (error) {
-      throw new AppError('Hedef oluşturulurken hata oluştu', 'GOAL_CREATION_FAILED', 500, false, error);
+    } catch (error: any) {
+      throw new Error(`Hedef oluşturulurken hata oluştu: ${error.message}`);
     }
   }
 
@@ -62,13 +64,13 @@ export class GoalService {
    */
   static async getGoal(goalId: string, userId: string): Promise<Goal | null> {
     try {
-      const goalDoc = await admin.firestore.collection('users').doc(userId).collection('goals').doc(goalId).get();
+      const goalDoc = await db.collection('users').doc(userId).collection('goals').doc(goalId).get();
       if (!goalDoc.exists) {
         return null;
       }
       return goalDoc.data() as Goal;
-    } catch (error) {
-      throw new AppError('Hedef alınırken hata oluştu', 'GOAL_FETCH_FAILED', 500, false, error);
+    } catch (error: any) {
+      throw new Error(`Hedef alınırken hata oluştu: ${error.message}`);
     }
   }
 
@@ -77,10 +79,10 @@ export class GoalService {
    */
   static async updateGoal(goalId: string, updates: Partial<Goal>, userId: string): Promise<void> {
     try {
-      const goalRef = admin.firestore.collection('users').doc(userId).collection('goals').doc(goalId);
+      const goalRef = db.collection('users').doc(userId).collection('goals').doc(goalId);
       await goalRef.update({ ...updates, updatedAt: Date.now() });
-    } catch (error) {
-      throw new AppError('Hedef güncellenirken hata oluştu', 'GOAL_UPDATE_FAILED', 500, false, error);
+    } catch (error: any) {
+      throw new Error(`Hedef güncellenirken hata oluştu: ${error.message}`);
     }
   }
 
@@ -89,10 +91,10 @@ export class GoalService {
    */
   static async deleteGoal(goalId: string, userId: string): Promise<void> {
     try {
-      const goalRef = admin.firestore.collection('users').doc(userId).collection('goals').doc(goalId);
+      const goalRef = db.collection('users').doc(userId).collection('goals').doc(goalId);
       await goalRef.delete();
-    } catch (error) {
-      throw new AppError('Hedef silinirken hata oluştu', 'GOAL_DELETION_FAILED', 500, false, error);
+    } catch (error: any) {
+      throw new Error(`Hedef silinirken hata oluştu: ${error.message}`);
     }
   }
 
@@ -101,10 +103,10 @@ export class GoalService {
    */
   static async getAllGoals(userId: string): Promise<Goal[]> {
     try {
-      const goalsSnapshot = await admin.firestore.collection('users').doc(userId).collection('goals').get();
+      const goalsSnapshot = await db.collection('users').doc(userId).collection('goals').get();
       return goalsSnapshot.docs.map(doc => doc.data() as Goal);
-    } catch (error) {
-      throw new AppError('Hedefler alınırken hata oluştu', 'GOALS_FETCH_FAILED', 500, false, error);
+    } catch (error: any) {
+      throw new Error(`Hedefler alınırken hata oluştu: ${error.message}`);
     }
   }
 
