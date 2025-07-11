@@ -1,5 +1,49 @@
 # PeakActivity - Versiyon Geçmişi
 
+## v0.13.14-firebase-external-integrations (2025-07-11 13:34:02)
+
+### ✨ Yeni Özellikler
+- **Google Calendar Entegrasyonu:**
+    - Google Calendar API için kimlik doğrulama akışı (OAuth 2.0) yönetildi.
+    - `functions/src/api/google-calendar-api.ts` dosyasına `googleCalendarAuth` ve `googleCalendarOAuthCallback` fonksiyonları eklendi.
+    - Google Takvim etkinliklerini getirme, oluşturma ve güncelleme (`listGoogleCalendarEvents`, `createGoogleCalendarEvent`, `updateGoogleCalendarEvent`) fonksiyonları `functions/src/services/google-calendar-service.ts` içinde geliştirildi ve API olarak dışa aktarıldı.
+    - Takvim senkronizasyonu için zamanlanmış Firebase Fonksiyonu (`syncGoogleCalendars`) ve `functions/src/services/calendar-sync-service.ts` içinde `CalendarSyncService` oluşturuldu.
+    - Boş zaman tespiti için `getFreeBusy` metodu `google-calendar-service.ts` içine eklendi ve API olarak dışa aktarıldı.
+    - Otomatik etkinlik oluşturma mantığı (`AutomaticEventCreationService` ve `createAutomaticCalendarEvents`) `functions/src/services/automatic-event-creation-service.ts` ve `functions/src/api/automatic-event-api.ts` içinde uygulandı.
+
+- **Trello/Jira Entegrasyonu:**
+    - Trello ve Jira API'leri için `trello.js` ve `jira-client` bağımlılıkları `functions/package.json`'a eklendi.
+    - Görev durumu getirme, güncelleme ve proje ilerlemesi senkronizasyonu (`getTrelloTaskStatus`, `getJiraTaskStatus`, `updateTrelloTaskStatus`, `updateJiraTaskStatus`, `getTrelloProjectProgress`, `getJiraProjectProgress`) fonksiyonları `functions/src/services/trello-jira-service.ts` içinde geliştirildi ve API olarak dışa aktarıldı.
+    - Proje durumu ve görev güncellemelerini izlemek için genel webhook (`functions/src/api/trello-jira-webhook-api.ts`) oluşturuldu.
+
+- **Makine Öğrenimi ve Yapay Zeka Entegrasyonları:**
+    - Kullanıcı aktivite verilerini ve görev geçmişini ML modeli eğitimi için hazırlayan (`MLDataPreparationService` ve `prepareMLTrainingData`) servis ve API uç noktası geliştirildi.
+    - Görev tamamlama süresi tahmini için temel bir ML modeli (`TaskCompletionPredictionService` ve `predictTaskCompletion`) geliştirildi.
+    - AI tarafından oluşturulan özetler ve içgörüler için (`AIInsightService` ve `generateAIInsights`) servis ve API uç noktası oluşturuldu.
+    - AI tarafından oluşturulan önerileri ve uyarıları bildirim olarak gönderen (`AINotificationService` ve `sendAIRecommendationNotification`) servis ve API uç noktası geliştirildi.
+    - Tahmin sonuçlarını ve AI içgörülerini görüntülemek için `aw-server/aw-webui/src/stores/prediction.ts` ve `aw-server/aw-webui/src/components/AIInsightsDisplay.vue` gibi UI bileşenleri entegre edildi.
+    - Özelleştirilebilir bildirim ayarları (`aiRecommendationsEnabled`, `aiAlertsEnabled`) `aw-server/aw-webui/src/stores/settings.ts`'e eklendi ve `aw-server/aw-webui/src/views/settings/AINotificationSettings.vue` bileşeni oluşturuldu.
+
+### 📚 Dokümantasyon
+- `checklist.md` dosyası, tüm ilgili Google Calendar, Trello/Jira ve AI/ML entegrasyon adımlarının tamamlandığını yansıtacak şekilde güncellendi.
+- Firebase Functions dağıtımı sırasında karşılaşılan sorunlar ve çözümleri (ortam değişkenleri, `npm install`, linting betiği, ESLint yapılandırması, ESM modülü hataları) belgelendi.
+
+### 🔧 Teknik İyileştirmeler
+- Firebase Functions ortam değişkenleri (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`) için gerekli konfigürasyon adımları belirlendi.
+- `functions/package.json` dosyasına `googleapis`, `trello.js`, `jira-client` gibi yeni bağımlılıklar eklendi ve `npm install` komutu başarıyla çalıştırıldı.
+- Firebase Functions için ESLint yapılandırması (`functions/.eslintrc.js` ve `functions/eslint.config.mjs`) güncellendi ve hatalar giderilmeye çalışıldı.
+- ESM modülü hataları için `functions/package.json`'a `"type": "module"` eklendi ve `functions/eslint.config.js` dosyası `functions/eslint.config.mjs` olarak yeniden adlandırıldı.
+- `functions/package.json` içindeki `lint` komutu `node_modules/.bin/eslint.cmd .` olarak düzeltildi.
+
+### ⚠️ Bilinen Sorunlar / Eksiklikler
+- Firebase Functions dağıtımında hala `Error: spawn npm --prefix "%RESOURCE_DIR%" run lint ENOENT` hatası devam etmektedir. Bu, linting adımında çözülmemiş bir sorun olduğunu göstermektedir. Kullanıcının bu hatayı çözmek için manuel müdahalesi gerekebilir.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **2. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
+
+---
+
 ## v0.13.13-full-checklist-completion (2025-07-11 13:34:02)
 
 ### ✨ Yeni Özellikler
@@ -456,3 +500,15 @@ Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 
 ### v0.13.6-documentation-export (2025-07-11 12:57:59)
 - Sohbet özetini ve teknik detaylarını içeren `chat-summary.md` ve `chat-details.md` dosyaları oluşturuldu. 
+
+## v0.13.15-bugfixes (2025-07-11 15:22:36)
+
+### 🐛 Bug Fixes
+- Cross-platform `lint` script updated to `eslint .` to resolve ENOENT during Firebase predeploy.
+- Fixed all apostrophe-related TypeScript compile errors in Google Calendar, Trello/Jira and Task Completion Prediction APIs.
+- Updated notification typing to support `ai_recommendation` and corrected field names.
+- Added ambient type declarations for `jira-client` and `trello.js` to silence TS7053.
+- Ensured calendar sync handles undefined event arrays.
+
+### ✅ Status
+Firebase Functions now build and lint cleanly; deployment blocker removed. 

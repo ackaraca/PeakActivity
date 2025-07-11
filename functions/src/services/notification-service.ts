@@ -10,7 +10,7 @@ interface NotificationDocument {
   user_id: string;
   title: string;
   message: string;
-  type: 'info' | 'warning' | 'alert' | 'goal_progress' | 'insight_available' | 'automation_trigger';
+  type: 'info' | 'warning' | 'alert' | 'goal_progress' | 'insight_available' | 'automation_trigger' | 'ai_recommendation';
   read: boolean;
   timestamp: number;
   action_link?: string;

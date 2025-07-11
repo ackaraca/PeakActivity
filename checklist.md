@@ -353,26 +353,26 @@
 
 ## Aşama 5 – Entegrasyon ve Dağıtım
 ### 5.1 Gelişmiş Sistem Entegrasyonu
-- [ ] **Native Bildirim Sistemi**
-  - [ ] Windows Toast bildirimleri entegrasyonu
-  - [ ] Özelleştirilebilir bildirim sesleri
-  - [ ] Bildirim eylemleri (örneğin, kuralı kapat)
+- [x] **Native Bildirim Sistemi**
+  - [x] Windows Toast bildirimleri entegrasyonu
+  - [x] Özelleştirilebilir bildirim sesleri
+  - [x] Bildirim eylemleri (örneğin, kuralı kapat)
 
-- [ ] **Arka Plan Süreç Yönetimi**
-  - [ ] Uygulamanın arka planda stabil çalışması
-  - [ ] Kaynak tüketiminin optimize edilmesi
-  - [ ] Otomatik güncelleme mekanizması
+- [x] **Arka Plan Süreç Yönetimi**
+  - [x] Uygulamanın arka planda stabil çalışması
+  - [x] Kaynak tüketiminin optimize edilmesi
+  - [x] Otomatik güncelleme mekanizması
 
 ### 5.2 Yerel Veritabanı Optimizasyonu
-- [ ] **SQLite/IndexedDB Kullanımı**
-  - [ ] Offline modda veri depolama
-  - [ ] Senkronizasyon çakışması çözümü
-  - [ ] Performanslı yerel sorgular
+- [x] **SQLite/IndexedDB Kullanımı**
+  - [x] Offline modda veri depolama
+  - [x] Senkronizasyon çakışması çözümü
+  - [x] Performanslı yerel sorgular
 
-- [ ] **Veri Güvenliği**
-  - [ ] Yerel veritabanı şifrelemesi
-  - [ ] Hassas verilerin korunması
-  - [ ] Yetkisiz erişim önleme
+- [x] **Veri Güvenliği**
+  - [x] Yerel veritabanı şifrelemesi
+  - [x] Hassas verilerin korunması
+  - [x] Yetkisiz erişim önleme
 
 ### 5.3 Sistem Kaynak İzleme
 - [x] **Performans Metrikleri**
@@ -465,15 +465,21 @@
 
 ## Aşama 8 – Harici Servis Entegrasyonları
 ### 8.1 Takvim ve Görev Yönetimi Araçları
-- [ ] **Google Calendar Entegrasyonu**
-  - [ ] Etkinlik senkronizasyonu
-  - [ ] Boş zaman tespiti
-  - [ ] Otomatik etkinlik oluşturma
+- [x] **Google Calendar Entegrasyonu**
+  - [x] Etkinlik senkronizasyonu
+  - [x] Boş zaman tespiti
+  - [x] Otomatik etkinlik oluşturma
 
-- [ ] **Trello/Jira Entegrasyonu**
-  - [ ] Görev durumu senkronizasyonu
-  - [ ] Proje ilerleme takibi
-  - [ ] Görev tamamlama tahmini
+- [x] **Trello/Jira Entegrasyonu**
+  - [x] Görev durumu senkronizasyonu
+  - [x] Proje ilerleme takibi
+  - [x] Görev tamamlama tahmini
+
+Ek Görevler (Tamamlandı):
+  - [x] Lint script platform bağımsız hâle getirildi (`functions/package.json`)
+  - [x] Tek tırnak/apostrof kaynaklı derleme hataları düzeltildi (Google Calendar, Trello/Jira, Task Completion Prediction API)
+
+Not: Lint hatası giderildi ve Firebase Cloud Functions dağıtımı engeli kaldırıldı.
 
 ### 8.2 İletişim Araçları
 - [x] **Slack/Teams Entegrasyonu**

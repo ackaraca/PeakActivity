@@ -25,14 +25,27 @@ import { createGoal, getGoal, updateGoal, deleteGoal, listGoals } from "./api/go
 import { createReport, getReport, updateReport, deleteReport, listReports, generateReportData } from "./api/report-management-api";
 import { createCustomEvent, getCustomEvent, updateCustomEvent, deleteCustomEvent, listCustomEvents } from "./api/custom-event-api";
 import { generateInsight, listInsights, getInsight, deleteInsight } from "./api/insight-generation-api";
+import { googleCalendarAuth, googleCalendarOAuthCallback } from "./api/google-calendar-api";
+import { listGoogleCalendarEvents } from "./api/google-calendar-api";
+import { createGoogleCalendarEvent, updateGoogleCalendarEvent } from "./api/google-calendar-api";
+import { getGoogleCalendarFreeBusy } from "./api/google-calendar-api";
+import { createAutomaticCalendarEvents } from "./api/automatic-event-api";
+import { getTrelloTaskStatus, getJiraTaskStatus } from "./api/trello-jira-api";
+import { updateTrelloTaskStatus, updateJiraTaskStatus } from "./api/trello-jira-api";
+import { getTrelloProjectProgress, getJiraProjectProgress } from "./api/trello-jira-api";
+import { prepareMLTrainingData } from "./api/ml-data-api";
+import { predictTaskCompletion } from "./api/task-completion-prediction-api";
+import { trelloJiraWebhookHandler } from "./api/trello-jira-webhook-api";
+import { generateAIInsights } from "./api/ai-insight-api";
 import { createNotification, getNotification, updateNotification, deleteNotification, listNotifications } from "./api/notification-api";
 import { createFocusMode, getFocusMode, updateFocusMode, deleteFocusMode, listFocusModes, setActiveFocusMode } from "./api/focus-mode-api";
+import { CalendarSyncService } from './services/calendar-sync-service';
 
 // Global settings for all functions in this file
 setGlobalOptions({
   region: "us-central1", // Fonksiyonların dağıtılacağı bölge
   timeoutSeconds: 60, // Varsayılan zaman aşımı süresi
-  memory: "256MB", // Varsayılan bellek boyutu
+  memory: "256MiB", // Varsayılan bellek boyutu
   concurrency: 50, // Bir instance tarafından aynı anda işlenebilecek istek sayısı
   minInstances: 1, // Soğuk başlangıçları azaltmak için minimum instance sayısı
 });
@@ -272,7 +285,19 @@ const globToRegex = (glob: string) => {
   return new RegExp(`^${pattern}$`, 'i');
 };
 
+// Admin SDK'yı başlat
 admin.initializeApp();
+
+const calendarSyncService = new CalendarSyncService();
+
+// Zamanlanmış Fonksiyonlar
+export const syncGoogleCalendars = onSchedule('every 24 hours', async (event) => {
+  console.log('Google Takvim senkronizasyonu başlatılıyor...');
+  await calendarSyncService.syncAllUsersCalendars();
+  console.log('Google Takvim senkronizasyonu tamamlandı.');
+});
+
+// HTTP Fonksiyonları (API Endpoints)
 
 export const helloWorld = functions.https.onRequest((request, response) => {
   functions.logger.info("Hello logs!", {structuredData: true});

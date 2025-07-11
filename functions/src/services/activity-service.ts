@@ -23,4 +23,27 @@ export class ActivityService {
       throw new Error("Failed to save activity.");
     }
   }
+
+  /**
+   * Belirli bir zaman aralığındaki kullanıcı aktivitelerini getirir.
+   * @param userId Kullanıcının Firebase UID'si.
+   * @param startDate Getirilecek aktivitelerin başlangıç zamanı (ISO string).
+   * @param endDate Getirilecek aktivitelerin bitiş zamanı (ISO string).
+   * @returns Aktivite verileri listesi.
+   */
+  async getActivitiesInInterval(userId: string, startDate: string, endDate: string) {
+    try {
+      const activitiesRef = this.db.collection(`users/${userId}/activities`);
+      const snapshot = await activitiesRef
+        .where('timestamp_start', '>=', startDate)
+        .where('timestamp_start', '<=', endDate)
+        .orderBy('timestamp_start')
+        .get();
+
+      return snapshot.docs.map(doc => doc.data());
+    } catch (error) {
+      console.error("Error getting activities in interval:", error);
+      throw new Error("Failed to get activities in interval.");
+    }
+  }
 } 
