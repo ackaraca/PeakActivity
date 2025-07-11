@@ -228,3 +228,38 @@ Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir.
 **Toplam Dosya:** 2 MD dokümanı  
 **Satır Sayısı:** ~1200+ satır kapsamlı dokümantasyon  
 **Kapsam:** Core integration analysis, Firebase architecture design, performance optimization 
+
+## v0.13.4-ai-integration-completed (2025-07-11 03:22:32)
+
+### ✨ Yeni Özellikler
+- **Firebase Fonksiyonları Ortamı Kurulumu ve Yapay Zeka Algoritmaları Entegrasyonu Tamamlandı**
+  - Firebase Functions dizini oluşturuldu ve Node.js/TypeScript projesi başlatıldı.
+  - Gerekli Firebase bağımlılıkları (`firebase-functions`, `firebase-admin`, `typescript`) yüklendi ve TypeScript yapılandırıldı.
+  - Her bir yapay zeka algoritması için Firebase Fonksiyonları (`index.ts` içinde) geliştirildi:
+    - Odaklanma Kalitesi Skoru (Focus Quality Score)
+    - Davranışsal Desenler ve Trend Analizi (Behavioral Patterns and Trend Analysis)
+    - Anomali Tespiti (Anomaly Detection)
+    - Otomatik Kategorizasyon / Etiketleme (Auto-Categorization / Labeling)
+    - Topluluk Tabanlı Kural Setleri (Community-Based Rule Sets)
+    - Bağlamsal Kategorizasyon (Contextual Categorization - Title/Content Analysis)
+  - `aw-server/aw_server/rest.py` içine AI algoritmaları için yeni REST API endpoint'leri (`/0/ai/*`) eklendi.
+  - `aw-server/aw-webui/src/util/awclient.ts` içine AI algoritmaları için yardımcı fonksiyonlar eklendi.
+  - `aw-server/aw-webui/src/components/` içine her bir AI algoritması sonucu için yeni Vue UI bileşenleri oluşturuldu.
+
+### 📚 Dokümantasyon
+- AI algoritmalarının sistem prompt'ları `firebase-md/` klasörüne ayrı ayrı kaydedildi:
+  - `firebase-md/focus-quality-score.md`
+  - `firebase-md/behavioral-patterns-trend-analysis.md`
+  - `firebase-md/anomaly-detection.md`
+  - `firebase-md/auto-categorization-labeling.md`
+  - `firebase-md/community-based-rule-sets.md`
+  - `firebase-md/contextual-categorization.md`
+- Eski `mds` dizini ve `diagram.svg` dosyaları kaldırıldı.
+- Yeni `aw-component-relationships.txt`, `checklist.md`, `firestore.rules`, `storage.rules` dosyaları eklendi.
+
+### 🔧 Teknik İyileştirmeler
+- `aw-client`, `aw-core`, `aw-notify`, `aw-qt` ve `aw-server` alt modülleri AI entegrasyonu için güncellendi ve kendi depolarında kaydedildi.
+
+#### 🔄 Geliştirme Döngüsü
+Bu versiyon 3-prompt geliştirme döngüsünün **3. prompt'u** ile tamamlandı.
+Sonraki güncellemeler her 3 prompt döngüsünde bu dosyaya eklenecektir. 
