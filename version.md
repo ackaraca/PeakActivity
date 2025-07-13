@@ -244,3 +244,26 @@ Projenin Git geçmişi başarılı bir şekilde sadeleştirildi ve sürümü gü
 
 ### ✅ Sonuç
 PeakActivityMain projesi artık belirtilen GitHub deposunda merkezi olarak yönetilebilir durumda. 
+
+## v0.2.3-repo-repush (2025-07-13 23:04:18)
+
+### 🚀 Yeni Özellikler ve İyileştirmeler
+- **PeakActivityMain Klasörünün İçeriğinin GitHub Deposuna Yeniden Aktarımı:**
+    - `C:/Users/ahmet/Desktop/app/PeakActivityMain` klasörünün içeriği, repository silinip yeniden oluşturulduktan sonra `https://github.com/ackaraca/PeakActivity` adresindeki uzak depoya `main` dalı olarak başarıyla yeniden gönderildi.
+    - Üst dizindeki hatalı `.git` klasörü kaldırıldı.
+    - Yeni bir Git deposu başlatıldı ve tüm klasör içeriği eklendi ve commit edildi.
+    - Uzak depo `origin` olarak tekrar ayarlandı ve değişiklikler zorla gönderim (`--force`) ile aktarıldı.
+
+### ✅ Sonuç
+PeakActivityMain projesinin sadece içeriği artık belirtilen GitHub deposunda doğru bir şekilde yönetilebilir durumda. 
+
+## v0.2.4-security-scanning-ci (2025-07-14 00:13:18)
+
+### 🚀 Yeni Özellikler ve İyileştirmeler
+- **CI/CD Pipeline Geliştirmeleri - Güvenlik Taraması Entegrasyonu:**
+    - GitHub Actions iş akışına (`.github/workflows/firebase-rules-test.yml`) Python kod tabanı için Bandit ve Safety güvenlik taramaları eklendi.
+    - Node.js/Vue.js ön uç kodu için `npm audit` güvenlik taraması GitHub Actions iş akışına entegre edildi.
+    - Bu taramalar, kod kalitesini ve bağımlılık güvenliğini artırmak amacıyla otomatik olarak çalışacak şekilde yapılandırıldı.
+
+### ✅ Sonuç
+Projenin CI/CD pipeline'ı, hem Python hem de Node.js kod tabanları için güvenlik taramalarıyla güçlendirildi. Bu, potansiyel güvenlik açıklarını erken aşamada tespit etmeye yardımcı olacaktır. 

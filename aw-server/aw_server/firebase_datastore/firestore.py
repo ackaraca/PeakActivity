@@ -3,9 +3,10 @@ from typing import Any, Dict, List, Optional
 
 from aw_core.models import Event
 from aw_datastore.storages.abstract import Storage, EventDB
+from aw_server.data_anonymization.anonymizer import Anonymizer # Anonymizer sınıfını içe aktar
 
 from .__init__ import db as firestore_db
-import hashlib # Yeni eklenen import
+# import hashlib # Yeni eklenen import kaldırıldı
 
 class FirestoreEventDB(EventDB):
     def __init__(self, user_id: str, bucket_id: str, anonymize_data: bool = False):
@@ -13,6 +14,7 @@ class FirestoreEventDB(EventDB):
         self.bucket_id = bucket_id
         self.collection_ref = firestore_db.collection(u'users').document(user_id).collection(u'buckets').document(bucket_id).collection(u'events')
         self.anonymize_data = anonymize_data # anonymize_data eklendi
+        self.anonymizer = Anonymizer() # Anonymizer örneği oluşturuldu
 
     def get(self, limit: int = -1, start: Optional[datetime] = None, end: Optional[datetime] = None) -> List[Event]:
         query = self.collection_ref.order_by(u'timestamp')
@@ -55,10 +57,12 @@ class FirestoreEventDB(EventDB):
 
             # İsteğe bağlı veri anonimleştirme
             if self.anonymize_data:
-                if 'title' in event_dict:
-                    event_dict['title'] = '[Anonimleştirilmiş Başlık]'
-                if 'app' in event_dict:
-                    event_dict['app'] = '[Anonimleştirilmiş Uygulama]'
+                event_dict = self.anonymizer.anonymize_event(event_dict)
+                # Eski anonimleştirme mantığı kaldırıldı
+                # if 'title' in event_dict:
+                #     event_dict['title'] = '[Anonimleştirilmiş Başlık]'
+                # if 'app' in event_dict:
+                #     event_dict['app'] = '[Anonimleştirilmiş Uygulama]'
                 # Daha gelişmiş anonimleştirme (örn. hashleme)
                 # if 'title' in event_dict:
                 #     event_dict['title'] = hashlib.sha256(event_dict['title'].encode()).hexdigest()
@@ -86,10 +90,12 @@ class FirestoreEventDB(EventDB):
 
         # İsteğe bağlı veri anonimleştirme
         if self.anonymize_data:
-            if 'title' in event_dict:
-                event_dict['title'] = '[Anonimleştirilmiş Başlık]'
-            if 'app' in event_dict:
-                event_dict['app'] = '[Anonimleştirilmiş Uygulama]'
+            event_dict = self.anonymizer.anonymize_event(event_dict)
+            # Eski anonimleştirme mantığı kaldırıldı
+            # if 'title' in event_dict:
+            #     event_dict['title'] = '[Anonimleştirilmiş Başlık]'
+            # if 'app' in event_dict:
+            #     event_dict['app'] = '[Anonimleştirilmiş Uygulama]'
             # Daha gelişmiş anonimleştirme (örn. hashleme)
             # if 'title' in event_dict:
             #     event_dict['title'] = hashlib.sha256(event_dict['title'].encode()).hexdigest()
@@ -99,14 +105,24 @@ class FirestoreEventDB(EventDB):
         doc_ref.set(event_dict)
 
     def get_eventcount(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> int:
-        # Bu işlem pahalı olabilir, Firestore'da tam sayım için Cloud Functions önerilir
+        # Firestore'un yerel aggregation sorgusunu kullanarak event sayısını al
         query = self.collection_ref
         if start:
             query = query.where(u'timestamp', u'>=', start)
         if end:
             query = query.where(u'timestamp', u'<', end)
         
-        return len(query.get())
+        # aggregation modülünü import et
+        from google.cloud.firestore_v1 import aggregation
+
+        aggregate_query = aggregation.AggregationQuery(query)
+        aggregate_query.count(alias="total_events")
+
+        results = aggregate_query.get()
+        for result in results:
+            if result[0].alias == "total_events":
+                return result[0].value
+        return 0
 
 class FirestoreStorage(Storage):
     def __init__(self, user_id: str, testing: bool = False, anonymize_data: bool = False):

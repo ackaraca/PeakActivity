@@ -19,6 +19,8 @@ flask-cors = "*"
 importlib-metadata = {version = "*", python = "<3.10"}
 werkzeug = "^2.3.3"
 firebase-admin = "^6.0.0" # Firestore entegrasyonu için gerekli
+google-cloud-secret-manager = "^2.17.0"
+google-cloud-logging = "^3.8.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "*"

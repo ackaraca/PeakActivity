@@ -6,9 +6,45 @@ import aw_client
 import click
 from aw_core import Event
 from aw_watcher_afk.listeners import KeyboardListener, MouseListener
+from aw_watcher_window.lib import get_current_window # get_current_window'ı içe aktar
 
 logger = logging.getLogger(__name__)
 
+# Ortak IDE ve geliştirme araçları listesi (uygulama adları veya pencere başlıklarındaki anahtar kelimeler)
+IDE_APP_NAMES = [
+    "Code", "idea64", "pycharm64", "WebStorm", "Visual Studio", "Eclipse", "Android Studio",
+    "Xcode", "Sublime Text", "Atom", "VSCodium", "Cursor", "Notepad++", "vim", "nvim",
+    "emacs", "Jupyter", "RStudio", "Spyder", "VS Code"
+]
+
+# Hata ayıklama modunu gösterebilecek anahtar kelimeler (pencere başlıklarında veya loglarda)
+DEBUG_KEYWORDS = [
+    "debug", "debugging", "debugger", "gdb", "lldb", "pdb", "inspect", "profiler"
+]
+
+def classify_activity_context(app_name: str, window_title: str, keyboard_data: dict, mouse_data: dict) -> dict:
+    is_coding = False
+    is_debugging = False
+
+    # IDE tespiti
+    is_ide_active = any(ide_name.lower() in app_name.lower() or ide_name.lower() in window_title.lower() for ide_name in IDE_APP_NAMES)
+
+    if is_ide_active:
+        # Klavye ve fare aktivitesine göre kod yazma/hata ayıklama ayrımı
+        # Basit bir heuristik: Çok sayıda tuş vuruşu kod yazmayı gösterirken,
+        # fare aktivitesiyle birlikte daha az tuş vuruşu hata ayıklamayı gösterebilir.
+        # Daha gelişmiş analizler için geçmiş aktivite desenleri kullanılabilir.
+        total_keys = sum(keyboard_data.values())
+        total_clicks = sum(mouse_data.values())
+
+        if total_keys > 5 and total_clicks < 2:  # Yüksek tuş vuruşu, düşük fare tıklaması = kod yazma
+            is_coding = True
+        elif total_clicks > 0 and total_keys < 3: # Fare aktivitesi, düşük tuş vuruşu = hata ayıklama (örn: breakpoint ile gezinme)
+            is_debugging = True
+        elif any(keyword.lower() in window_title.lower() for keyword in DEBUG_KEYWORDS):
+            is_debugging = True
+    
+    return {"is_coding": is_coding, "is_debugging": is_debugging}
 
 @click.command()
 @click.option("--testing", is_flag=True)
@@ -50,6 +86,22 @@ def main(testing: bool):
         keyboard_data = keyboard.next_event()
         mouse_data = mouse.next_event()
         merged_data = dict(**keyboard_data, **mouse_data)
+
+        # Aktif pencere bilgilerini al
+        current_window = None
+        try:
+            current_window = get_current_window() # macOS için strategy parametresi gerekebilir, şimdilik varsayılan
+        except Exception as e:
+            logger.warning(f"Pencere bilgisi alınırken hata oluştu: {e}")
+
+        if current_window:
+            app_name = current_window.get("app", "unknown")
+            window_title = current_window.get("title", "unknown")
+            
+            # Aktivite bağlamını sınıflandır
+            context_flags = classify_activity_context(app_name, window_title, keyboard_data, mouse_data)
+            merged_data.update(context_flags)
+        
         e = Event(timestamp=last_run, duration=(now - last_run), data=merged_data)
 
         pulsetime = 0.0

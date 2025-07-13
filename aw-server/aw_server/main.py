@@ -1,6 +1,7 @@
 import logging
 import sys
 import os
+from google.cloud import logging as cloud_logging
 
 from aw_core.log import setup_logging
 from aw_datastore import get_storage_methods
@@ -14,9 +15,21 @@ from .server import _start
 
 logger = logging.getLogger(__name__)
 
-
 def main():
     """Called from the executable and __main__.py"""
+
+    # Cloud Logging kurulumu
+    try:
+        client = cloud_logging.Client()
+        handler = cloud_logging.handlers.CloudLoggingHandler(client)
+        # Mevcut Flask ve diğer loglayıcıları Cloud Logging'e yönlendir
+        logging.getLogger().setLevel(logging.INFO) # Varsayılan log seviyesini ayarla
+        logging.getLogger().addHandler(handler)
+        print("Cloud Logging başarıyla başlatıldı.")
+    except Exception as e:
+        print(f"Cloud Logging başlatılırken hata oluştu: {e}", file=sys.stderr)
+        # Hata durumunda uygulama yine de çalışmaya devam etmeli
+
 
     settings, storage_method = parse_settings()
 
@@ -49,15 +62,19 @@ def main():
         logger.info(f"Using custom_static: {settings.custom_static}")
 
     logger.info("Starting up...")
-    _start(
-        host=settings.host,
-        port=settings.port,
-        testing=settings.testing,
-        storage_method=storage_method,
-        cors_origins=settings.cors_origins,
-        custom_static=settings.custom_static,
-        user_id=user_id, # user_id parametresi _start fonksiyonuna iletildi
-    )
+    try:
+        _start(
+            host=settings.host,
+            port=settings.port,
+            testing=settings.testing,
+            storage_method=storage_method,
+            cors_origins=settings.cors_origins,
+            custom_static=settings.custom_static,
+            user_id=user_id, # user_id parametresi _start fonksiyonuna iletildi
+        )
+    except Exception as e:
+        logger.exception(f"Uygulama başlatılırken kritik hata oluştu: {e}")
+        sys.exit(1)
 
 
 def parse_settings():

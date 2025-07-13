@@ -1,10 +1,11 @@
 import { db } from "../firebaseAdmin";
 import { ActivityEvent } from "../types/activity-event"; // ActivityEvent'ı içe aktar
+import { linearRegression, linearRegressionLine, mean, standardDeviation } from '../services/utils/math-utils'; // İstatistiksel yardımcı fonksiyonları içe aktar
 
 interface RealtimeBehavioralPattern {
   user_id: string;
   timestamp: string; // Olayın zaman damgası
-  pattern_type: 'idle_detection' | 'focus_shift' | 'high_activity' | 'low_activity' | 'unusual_category_use';
+  pattern_type: 'idle_detection' | 'focus_shift' | 'high_activity' | 'low_activity' | 'unusual_category_use' | 'focus_score_trend' | 'anomaly_detection';
   description: string; // Tespit edilen örüntünün açıklaması
   confidence_score?: number; // Güven skoru (0-1 arası, ML entegrasyonu için)
   related_activity_id?: string; // İlgili aktivite olayının ID'si
@@ -58,6 +59,91 @@ export class BehavioralAnalysisService {
     }
 
     return pattern;
+  }
+
+  /**
+   * Belirli bir zaman dilimindeki odak skorlarının trendini hesaplar.
+   * Geçmiş odak skorlarını alır ve lineer regresyon veya hareketli ortalama gibi yöntemlerle trendi belirler.
+   * @param focusScores Geçmiş odak skorları dizisi.
+   * @returns Odak skoru trendi hakkında bilgi.
+   */
+  public calculateFocusScoreTrend(focusScores: number[]): {
+    trend: 'increasing' | 'decreasing' | 'stable' | 'unknown';
+    slope?: number;
+    explanation: string;
+  } {
+    if (focusScores.length < 2) {
+      return { trend: 'unknown', explanation: "Trend analizi için yeterli veri yok." };
+    }
+
+    // Basit lineer regresyon ile trend tespiti
+    const dataPoints: [number, number][] = focusScores.map((score, index) => [index, score]);
+    const lr = linearRegression(dataPoints);
+    const slope = lr.slope;
+
+    let trend: 'increasing' | 'decreasing' | 'stable' = 'stable';
+    if (slope > 0.1) { // Eşik değeri ayarlanabilir
+      trend = 'increasing';
+    } else if (slope < -0.1) { // Eşik değeri ayarlanabilir
+      trend = 'decreasing';
+    }
+
+    const explanation = `Odak skoru trendi: ${trend}. Eğim: ${slope.toFixed(2)}.`
+    return { trend, slope, explanation };
+  }
+
+  /**
+   * Veri setindeki anomalileri Z-skoru yöntemiyle tespit eder.
+   * @param dataPoints Sayısal veri noktaları dizisi.
+   * @param threshold Z-skoru eşiği (varsayılan 2.0 veya 3.0).
+   * @returns Anomali içeren noktaların listesi ve anomali tespiti hakkında bilgi.
+   */
+  public detectAnomalyWithZScore(dataPoints: number[], threshold: number = 2.5): {
+    anomalies: { value: number; index: number; zScore: number }[];
+    explanation: string;
+  } {
+    if (dataPoints.length < 2) {
+      return { anomalies: [], explanation: "Anomali tespiti için yeterli veri yok." };
+    }
+
+    const dataMean = mean(dataPoints);
+    const dataStdDev = standardDeviation(dataPoints);
+
+    const anomalies: { value: number; index: number; zScore: number }[] = [];
+
+    if (dataStdDev === 0) {
+      return { anomalies: [], explanation: "Tüm veriler aynı, anomali tespit edilemedi." };
+    }
+
+    dataPoints.forEach((value, index) => {
+      const zScore = (value - dataMean) / dataStdDev;
+      if (Math.abs(zScore) > threshold) {
+        anomalies.push({ value, index, zScore: parseFloat(zScore.toFixed(2)) });
+      }
+    });
+
+    const explanation = anomalies.length > 0 
+      ? `${anomalies.length} anomali tespit edildi (eşik: ${threshold}).` 
+      : `Anomali tespit edilmedi (eşik: ${threshold}).`;
+
+    return { anomalies, explanation };
+  }
+
+  /**
+   * Doğal Dil İşleme (NLP) yetenekleri için yer tutucu.
+   * Gelecekte metin analizi, duygu analizi veya konu modelleme eklenebilir.
+   * @param text Analiz edilecek metin.
+   * @returns NLP analizi sonuçları.
+   */
+  public async performNlpAnalysis(text: string): Promise<any> {
+    // Buraya Google Cloud Natural Language API veya benzeri bir NLP servisi entegre edilebilir.
+    // Şimdilik sadece bir yer tutucu.
+    return {
+      sentiment: "neutral",
+      entities: [],
+      categories: [],
+      summary: "Bu metin için NLP analizi henüz uygulanmadı.",
+    };
   }
 
   /**

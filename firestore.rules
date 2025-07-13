@@ -21,55 +21,72 @@ service cloud.firestore {
     match /users/{userId} {
       // Kullanıcılar kendi profillerini okuyabilir ve güncelleyebilir
       allow read, write: if isAuthenticated() && isUserOwned(userId);
-      
-      // Alt koleksiyonlar için kurallar
-      match /activities/{activityId} {
+
+      // buckets alt koleksiyonu kuralları
+      match /buckets/{bucketId} {
         allow get, list: if isAuthenticated() && isUserOwned(userId);
         allow create: if isAuthenticated() && isUserOwned(userId);
         allow update: if isAuthenticated() && isUserOwned(userId);
         allow delete: if isAuthenticated() && isUserOwned(userId);
-      }
-      
-      match /goals/{goalId} {
-        allow get, list: if isAuthenticated() && isUserOwned(userId);
-        allow create: if isAuthenticated() && isUserOwned(userId);
-        allow update: if isAuthenticated() && isUserOwned(userId);
-        allow delete: if isAuthenticated() && isUserOwned(userId);
-      }
-      
-      match /insights/{insightId} {
-        allow get, list: if isAuthenticated() && isUserOwned(userId);
-        allow create: if isAuthenticated() && isUserOwned(userId);
-        allow update: if isAuthenticated() && isUserOwned(userId);
-        allow delete: if isAuthenticated() && isUserOwned(userId);
-      }
-      
-      match /daily_reports/{reportId} {
-        allow get, list: if isAuthenticated() && isUserOwned(userId);
-        allow create: if isAuthenticated() && isUserOwned(userId);
-        allow update: if isAuthenticated() && isUserOwned(userId);
-        allow delete: if isAuthenticated() && isUserOwned(userId);
-      }
-      
-      match /weekly_reports/{reportId} {
-        allow get, list: if isAuthenticated() && isUserOwned(userId);
-        allow create: if isAuthenticated() && isUserOwned(userId);
-        allow update: if isAuthenticated() && isUserOwned(userId);
-        allow delete: if isAuthenticated() && isUserOwned(userId);
-      }
-      
-      match /automation_rules/{ruleId} {
-        allow get, list: if isAuthenticated() && isUserOwned(userId);
-        allow create: if isAuthenticated() && isUserOwned(userId);
-        allow update: if isAuthenticated() && isUserOwned(userId);
-        allow delete: if isAuthenticated() && isUserOwned(userId);
-      }
-      
-      match /settings/{settingId} {
-        allow get, list: if isAuthenticated() && isUserOwned(userId);
-        allow create: if isAuthenticated() && isUserOwned(userId);
-        allow update: if isAuthenticated() && isUserOwned(userId);
-        allow delete: if isAuthenticated() && isUserOwned(userId);
+        
+        // events alt koleksiyonu kuralları (önceki activities ile aynı)
+        match /events/{eventId} {
+          allow get, list: if isAuthenticated() && isUserOwned(userId);
+          allow create: if isAuthenticated() && isUserOwned(userId);
+          allow update: if isAuthenticated() && isUserOwned(userId);
+          allow delete: if isAuthenticated() && isUserOwned(userId);
+          // TODO: anonimleştirilmiş veriler için herkes tarafından okunabilirlik kuralı eklenecek
+          // Örn: allow read: if resource.data.is_anonymized;
+        }
+
+        // goals alt koleksiyonu kuralları
+        match /goals/{goalId} {
+          allow get, list: if isAuthenticated() && isUserOwned(userId);
+          allow create: if isAuthenticated() && isUserOwned(userId);
+          allow update: if isAuthenticated() && isUserOwned(userId);
+          allow delete: if isAuthenticated() && isUserOwned(userId);
+        }
+
+        // insights alt koleksiyonu kuralları
+        match /insights/{insightId} {
+          allow get, list: if isAuthenticated() && isUserOwned(userId);
+          allow create: if isAuthenticated() && isUserOwned(userId);
+          allow update: if isAuthenticated() && isUserOwned(userId);
+          allow delete: if isAuthenticated() && isUserOwned(userId);
+          // TODO: anonimleştirilmiş özet veriler için daha geniş okuma izinleri düşünülecek
+        }
+
+        // daily_reports alt koleksiyonu kuralları
+        match /daily_reports/{reportId} {
+          allow get, list: if isAuthenticated() && isUserOwned(userId);
+          allow create: if isAuthenticated() && isUserOwned(userId);
+          allow update: if isAuthenticated() && isUserOwned(userId);
+          allow delete: if isAuthenticated() && isUserOwned(userId);
+        }
+
+        // weekly_reports alt koleksiyonu kuralları
+        match /weekly_reports/{reportId} {
+          allow get, list: if isAuthenticated() && isUserOwned(userId);
+          allow create: if isAuthenticated() && isUserOwned(userId);
+          allow update: if isAuthenticated() && isUserOwned(userId);
+          allow delete: if isAuthenticated() && isUserOwned(userId);
+        }
+
+        // automation_rules alt koleksiyonu kuralları
+        match /automation_rules/{ruleId} {
+          allow get, list: if isAuthenticated() && isUserOwned(userId);
+          allow create: if isAuthenticated() && isUserOwned(userId);
+          allow update: if isAuthenticated() && isUserOwned(userId);
+          allow delete: if isAuthenticated() && isUserOwned(userId);
+        }
+
+        // settings alt koleksiyonu kuralları
+        match /settings/{settingId} {
+          allow get, list: if isAuthenticated() && isUserOwned(userId);
+          allow create: if isAuthenticated() && isUserOwned(userId);
+          allow update: if isAuthenticated() && isUserOwned(userId);
+          allow delete: if isAuthenticated() && isUserOwned(userId);
+        }
       }
     }
     

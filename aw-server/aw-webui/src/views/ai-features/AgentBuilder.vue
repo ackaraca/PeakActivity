@@ -69,69 +69,54 @@
 import { ref } from 'vue';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../firebase'; // Firebase fonksiyonları instance'ını içe aktarın
+import { useAgentStore } from '../../stores/agent'; // Yeni Pinia store'u içe aktarın
 
-const agentConfigYaml = ref(`
-# Örnek Ajan Yapılandırması
-agents:
-  - name: ProductivityAgent
-    role: Verimlilik uzmanı
-    goal: Kullanıcının odaklanma süresini artırmak ve dikkat dağınıklığını azaltmak
-    backstory: ActivityWatch verilerini analiz ederek kişiselleştirilmiş verimlilik stratejileri sunar.
-    tools: [] # Buraya özel araçlar eklenebilir
-tasks:
-  - name: AnalyzeFocusPatterns
-    agent: ProductivityAgent
-    description: Kullanıcının son 24 saatteki odaklanma desenlerini ActivityWatch verilerinden analiz et.
-    expected_output: "Odaklanma süreleri, dikkat dağınıklığı anları ve bağlam değişimleri hakkında detaylı analiz."
-  - name: SuggestOptimizations
-    agent: ProductivityAgent
-    description: Analizlere dayanarak, kullanıcının verimliliğini artırmak için kişiselleştirilmiş öneriler ve eylem adımları sun.
-    expected_output: "Uygulanabilir verimlilik ipuçları ve dikkat dağınıklığını azaltma stratejileri listesi."
-`);
-const topic = ref('');
-const output = ref(null);
-const error = ref<string | null>(null);
-const isLoading = ref(false);
+const agentStore = useAgentStore();
 
-const configError = ref<string | null>(null);
-const topicError = ref<string | null>(null);
+// Pinia store'dan durumları doğrudan kullan
+const agentConfigYaml = agentStore.agentConfigYaml;
+const topic = agentStore.topic;
+const output = agentStore.output;
+const error = agentStore.error;
+const isLoading = agentStore.isLoading;
+const configError = agentStore.configError;
+const topicError = agentStore.topicError;
 
 // Firebase Callable Function'ı tanımlayın
 const generateAgentCallable = httpsCallable(functions, 'generateAgent');
 
 const generateAgent = async () => {
-  // Hataları sıfırla
-  configError.value = null;
-  topicError.value = null;
-  output.value = null;
-  error.value = null;
+  // Hataları sıfırla (store üzerinden)
+  agentStore.configError = null;
+  agentStore.topicError = null;
+  agentStore.output = null;
+  agentStore.error = null;
 
   // Giriş doğrulama
   if (!agentConfigYaml.value) {
-    configError.value = 'Ajan yapılandırma YAML'ı boş olamaz.';
+    agentStore.configError = 'Ajan yapılandırma YAML\'ı boş olamaz.';
     return;
   }
   if (!topic.value) {
-    topicError.value = 'Görev konusu boş olamaz.';
+    agentStore.topicError = 'Görev konusu boş olamaz.';
     return;
   }
 
-  isLoading.value = true;
+  agentStore.isLoading = true;
   try {
-    // Ajan yapılandırma YAML'ını düz JSON'a dönüştürmeye gerek yok, Firebase Fonksiyonu string olarak alacak.
     const result = await generateAgentCallable({
       agent_config_data: agentConfigYaml.value,
       topic: topic.value,
     });
-    output.value = result.data;
+    agentStore.output = result.data;
   } catch (err: any) {
     console.error("Ajan oluşturma hatası:", err);
-    error.value = err.message || 'Ajan oluşturma sırasında bir hata oluştu.';
+    agentStore.error = err.message || 'Ajan oluşturma sırasında bir hata oluştu.';
     if (err.details) {
-      error.value += ` Detaylar: ${JSON.stringify(err.details)}`;
+      agentStore.error += ` Detaylar: ${JSON.stringify(err.details)}`;
     }
   } finally {
-    isLoading.value = false;
+    agentStore.isLoading = false;
   }
 };
 </script>

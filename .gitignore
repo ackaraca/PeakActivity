@@ -170,8 +170,6 @@ coverage/
 
 # ========================= AI Feature Development Notes =========================
 # AI özellik geliştirme notları
-ai-features-plan.md
-ai-implementation-notes.md
 prompts/
 ai-research/
 

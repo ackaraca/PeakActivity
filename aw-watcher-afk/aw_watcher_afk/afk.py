@@ -29,20 +29,24 @@ td1ms = timedelta(milliseconds=1)
 
 
 class Settings:
-    def __init__(self, config_section, timeout=None, poll_time=None):
+    def __init__(self, config_section, timeout=None, poll_time=None, thinking_timeout=None):
         # Time without input before we're considering the user as AFK
         self.timeout = timeout or config_section["timeout"]
+        # Time without input before we're considering the user as thinking
+        self.thinking_timeout = thinking_timeout or config_section["thinking_timeout"]
         # How often we should poll for input activity
         self.poll_time = poll_time or config_section["poll_time"]
 
         assert self.timeout >= self.poll_time
+        assert self.thinking_timeout >= self.poll_time
+        assert self.timeout > self.thinking_timeout # AFK zaman aşımı düşünme zamanından büyük olmalı
 
 
 class AFKWatcher:
     def __init__(self, args, testing=False):
         # Read settings from config
         self.settings = Settings(
-            load_config(testing), timeout=args.timeout, poll_time=args.poll_time
+            load_config(testing), timeout=args.timeout, poll_time=args.poll_time, thinking_timeout=args.thinking_timeout
         )
 
         self.client = ActivityWatchClient(
@@ -52,8 +56,8 @@ class AFKWatcher:
             self.client.client_name, self.client.client_hostname
         )
 
-    def ping(self, afk: bool, timestamp: datetime, duration: float = 0):
-        data = {"status": "afk" if afk else "not-afk"}
+    def ping(self, status: str, timestamp: datetime, duration: float = 0):
+        data = {"status": status}
         e = Event(timestamp=timestamp, duration=duration, data=data)
         pulsetime = self.settings.timeout + self.settings.poll_time
         self.client.heartbeat(self.bucketname, e, pulsetime=pulsetime, queued=True)
@@ -72,7 +76,7 @@ class AFKWatcher:
             self.heartbeat_loop()
 
     def heartbeat_loop(self):
-        afk = False
+        current_status = "not-afk"
         while True:
             try:
                 if system in ["Darwin", "Linux"] and os.getppid() == 1:
@@ -87,34 +91,29 @@ class AFKWatcher:
                 last_input = now - timedelta(seconds=seconds_since_input)
                 logger.debug(f"Seconds since last input: {seconds_since_input}")
 
-                # If no longer AFK
-                if afk and seconds_since_input < self.settings.timeout:
-                    logger.info("No longer AFK")
-                    self.ping(afk, timestamp=last_input)
-                    afk = False
-                    # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
-                    self.ping(afk, timestamp=last_input + td1ms)
-                # If becomes AFK
-                elif not afk and seconds_since_input >= self.settings.timeout:
-                    logger.info("Became AFK")
-                    self.ping(afk, timestamp=last_input)
-                    afk = True
-                    # ping with timestamp+1ms with the next event (to ensure the latest event gets retrieved by get_event)
-                    self.ping(
-                        afk, timestamp=last_input + td1ms, duration=seconds_since_input
-                    )
-                # Send a heartbeat if no state change was made
+                new_status = "not-afk"
+                if seconds_since_input >= self.settings.timeout:
+                    new_status = "afk"
+                elif seconds_since_input >= self.settings.thinking_timeout:
+                    new_status = "thinking-time"
+
+                if new_status != current_status:
+                    logger.info(f"Status changed from {current_status} to {new_status}")
+                    # Geçiş durumunu pingle
+                    self.ping(new_status, timestamp=last_input)
+                    current_status = new_status
                 else:
-                    if afk:
-                        # we need the +1ms here too, to make sure we don't "miss" the last heartbeat
-                        # (if last_input hasn't changed)
+                    # Durum değişmediyse heartbeat gönder
+                    if new_status == "afk" or new_status == "thinking-time":
+                        # AFK veya düşünme durumundaysak, süreyi güncelleyerek ping gönder
                         self.ping(
-                            afk,
-                            timestamp=last_input + td1ms,
+                            new_status,
+                            timestamp=last_input + td1ms, # Bir sonraki olayın zaman damgasını doğru ayarla
                             duration=seconds_since_input,
                         )
                     else:
-                        self.ping(afk, timestamp=last_input)
+                        # Not-AFK ise, sadece bir heartbeat gönder
+                        self.ping(new_status, timestamp=last_input)
 
                 sleep(self.settings.poll_time)
 
