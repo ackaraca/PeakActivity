@@ -1,0 +1,48 @@
+# ActivityWatch Component Relationships
+
+## Direct Component Relationships
+
+aw-qt -> aw-server
+aw-qt -> aw-notify
+aw-qt -> aw-watcher-window
+aw-qt -> aw-watcher-afk
+aw-notify -> aw-server
+aw-watcher-window -> aw-server
+aw-watcher-afk -> aw-server
+aw-watcher-web -> aw-server
+aw-server -> aw-webui
+aw-webui -> aw-server
+aw-server -> aw-sync
+aw-sync -> Sync folder
+Sync folder -> aw-sync
+Browser -> aw-watcher-web
+
+## Functional Relationships
+
+aw-watcher-window -> Active window -> aw-server
+aw-watcher-afk -> AFK status -> aw-server
+aw-watcher-web -> Active tab -> aw-server 
+
+graph TD;
+  aw-qt[<a href='https://github.com/ActivityWatch/aw-qt'>aw-qt</a>];
+  aw-notify[<a href='https://github.com/ActivityWatch/aw-notify'>aw-notify</a>];
+  aw-server[<a href='https://github.com/ActivityWatch/aw-server'>aw-server</a>];
+  aw-webui[<a href='https://github.com/ActivityWatch/aw-webui'>aw-webui</a>];
+  aw-watcher-window[<a href='https://github.com/ActivityWatch/aw-watcher-window'>aw-watcher-window</a>];
+  aw-watcher-afk[<a href='https://github.com/ActivityWatch/aw-watcher-afk'>aw-watcher-afk</a>];
+  aw-watcher-web[<a href='https://github.com/ActivityWatch/aw-watcher-web'>aw-watcher-web</a>];
+  aw-sync[<a href='https://github.com/ActivityWatch/aw-server-rust/tree/master/aw-sync'>aw-sync</a>];
+
+  aw-qt -- Manages --> aw-server;
+  aw-qt -- Manages --> aw-notify -- Queries --> aw-server;
+  aw-qt -- Manages --> aw-watcher-window -- Watches --> S1[Active window] -- Heartbeats --> aw-server;
+  aw-qt -- Manages --> aw-watcher-afk -- Watches --> S2[AFK status] -- Heartbeats --> aw-server;
+  Browser -- Manages --> aw-watcher-web -- Watches --> S3[Active tab] -- Heartbeats --> aw-server;
+  SF -- Dropbox/Syncthing/etc --> SF;
+  aw-server <-- Push/Pull --> aw-sync <-- Read/Write --> SF[Sync folder];
+  aw-server -- Serves --> aw-webui -- Queries --> aw-server;
+
+  %% User -- Interacts --> aw-webui;
+  %% User -- Observes --> aw-notify;
+  %% User -- Interacts --> aw-qt;
+
