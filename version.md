@@ -278,3 +278,13 @@ Projenin CI/CD pipeline'ı, hem Python hem de Node.js kod tabanları için güve
 
 ### ✅ Sonuç
 Firebase API anahtarı başarıyla kaynak kodundan çıkarıldı ve ortam değişkenleri aracılığıyla yönetilecek şekilde yapılandırıldı, bu da uygulamanın güvenliğini artırdı. 
+
+## v0.2.5-typescript-env-fix (2025-07-14 08:08:53)
+
+### 🛠️ Teknik İyileştirmeler ve Hata Düzeltmeleri
+- **TypeScript Ortam Değişkeni Tanıma Hatası Düzeltmesi:**
+    - `aw-server/aw-webui/src/globals.d.ts` dosyasına `ImportMetaEnv` arayüzü ve `ImportMeta` üzerinde `env` özelliği tanımlaması eklendi.
+    - Bu sayede `firebase.ts` dosyasındaki `import.meta.env.VITE_FIREBASE_API_KEY` kullanımından kaynaklanan `Property 'env' does not exist on type 'ImportMeta'.` TypeScript hatası giderildi.
+
+### ✅ Sonuç
+Uygulamanın derleme sürecindeki TypeScript hatası başarıyla düzeltildi ve Firebase API anahtarının ortam değişkeni aracılığıyla güvenli bir şekilde yüklenmesi sağlandı. 
