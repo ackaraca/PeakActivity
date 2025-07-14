@@ -1,0 +1,70 @@
+name: PeakActivityMain Automated Issue Triage
+
+on:
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  triage-issue:
+    timeout-minutes: 5
+    permissions:
+      issues: write
+      contents: read
+      id-token: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.issue.number }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate GitHub App Token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Run Gemini Issue Triage
+        uses: google-gemini/gemini-cli-action@main # Use latest stable version or specific tag
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+        with:
+          version: 0.1.8-rc.0 # Consider updating to a newer stable version if available
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OTLP_GCP_WIF_PROVIDER: ${{ secrets.OTLP_GCP_WIF_PROVIDER }}
+          OTLP_GOOGLE_CLOUD_PROJECT: ${{ secrets.OTLP_GOOGLE_CLOUD_PROJECT }}
+          settings_json: |
+            {
+              "coreTools": [
+                "run_shell_command(gh label list)",
+                "run_shell_command(gh issue edit)"
+              ],
+              "telemetry": {
+                "enabled": true,
+                "target": "gcp"
+              },
+              "sandbox": false
+            }
+          prompt: |
+            You are an issue triage assistant for the PeakActivityMain project. Analyze the current GitHub issue and apply the most appropriate existing labels.
+
+            Steps:
+            1. Run: `gh label list --limit 100` to get all available labels.
+            2. Review the issue title and body provided in the environment variables.
+            3. Select the most relevant labels from the existing labels, focusing on area/*, type/*, and priority/*.
+            4. Apply the selected labels to this issue using: `gh issue edit ISSUE_NUMBER --add-label "label1,label2"`
+
+            Guidelines:
+            - Only use labels that already exist in the repository.
+            - Do not add comments or modify the issue content.
+            - Triage only the current issue.
+            - Assign all applicable area/*, type/*, and priority/* labels based on the issue content.
+            - If no relevant labels are found, do not apply any labels.

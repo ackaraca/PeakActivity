@@ -336,3 +336,15 @@ Veri anonimleştirme servisi daha esnek ve yapılandırılabilir hale getirildi,
 
 ### ✅ Sonuç
 Projenin detaylı bir analizi yapıldı ve gelecekteki geliştirmelere yönelik kapsamlı bir yol haritası (`todo.md`) başarıyla oluşturuldu. Bu yol haritası, projenin istikrarlı, güvenli ve performanslı bir şekilde piyasaya sürülmesi için gerekli tüm adımları içermektedir. 
+
+## v0.2.5-github-workflows-update (2025-07-14 08:50:11)
+
+### 🚀 Yeni Özellikler ve İyileştirmeler
+- **GitHub İş Akışları Optimizasyonu ve Genişletilmesi:**
+    - `.github/workflows/` dizinindeki mevcut iş akışları (`firebase-rules-test.yml`, `release.yml`, `test-comprehensive.yml`, `test-core.yml`, `test-extended.yml`, `test-frameworks.yml`, `test-real.yml`, `unittest.yml`, `auto-pr-comment.yml`, `build-image.yml`, `coverage.yml`, `docker-publish.yml`, `gemini-issue-automated-triage.yml`, `gemini-issue-review.yml`, `python-package.yml`, `python-publish.yml`, `auto-issue-comment.yml`) `PeakActivityMain` projesine özel olarak uyarlandı, gereksiz PraisonAI bağımlılıkları ve adımları kaldırıldı, test komutları ve ortam değişkenleri güncellendi.
+    - **Yeni İş Akışları Eklendi:**
+        - `code-quality.yml`: Python (Black, Flake8) ve Node.js/Vue.js (ESLint) için otomatik kod kalitesi ve linting kontrolleri eklendi.
+        - `dependency-scan.yml`: Python (pip-audit) ve Node.js (npm audit) bağımlılıklarında güvenlik açığı taramalarını otomatikleştiren bir iş akışı eklendi.
+
+### ✅ Sonuç
+Projenin CI/CD süreçleri, mevcut iş akışlarının `PeakActivityMain` projesine uyarlanması ve kod kalitesi ile bağımlılık güvenliği taramalarını içeren yeni iş akışlarının eklenmesiyle önemli ölçüde geliştirildi. Bu sayede, kod tabanının kalitesi, güvenliği ve sürdürülebilirliği artırıldı. 

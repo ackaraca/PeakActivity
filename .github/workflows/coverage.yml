@@ -1,0 +1,96 @@
+name: Run tests and upload coverage (PeakActivityMain)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Run tests and collect coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.in-project true
+          poetry config virtualenvs.create true
+
+      - name: Install Python Dependencies (aw-server)
+        run: poetry install --no-root
+        working-directory: aw-server
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Node.js Dependencies (functions)
+        run: npm install
+        working-directory: functions
+
+      - name: Install Node.js Dependencies (aw-webui)
+        run: npm install
+        working-directory: aw-server/aw-webui
+
+      - name: Run Python Backend Tests with Coverage
+        run: |
+          poetry run pytest --cov=aw_server --cov-branch --cov-report=xml tests/
+        working-directory: aw-server
+
+      - name: Run Firebase Functions Tests with Coverage
+        run: |
+          npm test -- --coverage --coverageReporters=text --coverageReporters=cobertura --coverageDirectory=coverage
+        working-directory: functions
+        env:
+          # Set up test environment variables for Firebase Functions
+          FIREBASE_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+          FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+          # Add any other necessary Firebase environment variables for tests
+
+      - name: Run Web UI Tests with Coverage
+        run: npm test -- --coverage --coverageReporters=text --coverageReporters=cobertura --coverageDirectory=coverage
+        working-directory: aw-server/aw-webui
+
+      - name: Upload Python Coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: aw-server/coverage.xml
+          flags: python-backend
+          name: python-coverage
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Upload Firebase Functions Coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: functions/coverage/cobertura-coverage.xml
+          flags: firebase-functions
+          name: functions-coverage
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Upload Web UI Coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: aw-server/aw-webui/coverage/cobertura-coverage.xml
+          flags: webui-frontend
+          name: webui-coverage
+          fail_ci_if_error: false
+          verbose: true 
