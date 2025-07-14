@@ -63,13 +63,13 @@ service firebase.storage {
     
     // Sistem dosyaları (sadece admin erişimi)
     match /system/{fileName} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && isAdmin();
       allow write: if isAuthenticated() && isAdmin() && isValidFileSize() && isValidContentType();
     }
     
     // AI model dosyaları
     match /ai_models/{fileName} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && isAdmin();
       allow write: if isAuthenticated() && isAdmin() && isValidFileSize() && isValidContentType();
     }
   }

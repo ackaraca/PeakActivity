@@ -301,3 +301,25 @@ Uygulamanın derleme sürecindeki TypeScript hatası başarıyla düzeltildi ve 
 
 ### ✅ Sonuç
 Projenin bir sonraki adımlarını içeren `next_steps.md` dosyası, tamamlanan görevlerin yansıtılmasıyla güncellendi. 
+
+## v0.2.7-logging-integration (2025-07-14 08:22:18)
+
+### 🛠️ Teknik İyileştirmeler ve Hata Düzeltmeleri
+- **Hata Yönetimi & Loglama:**
+    - `aw-server/requirements.txt` dosyasına `google-cloud-logging` bağımlılığı eklendi.
+    - `aw-server/aw_server/log.py` dosyası, Python'ın standart `logging` modülünü kullanarak Firebase/Cloud Logging entegrasyonu yapacak şekilde güncellendi.
+    - `FlaskLogHandler` sınıfı, log mesajlarını hem yerel Flask logger'ına hem de Cloud Logging'e gönderecek şekilde genişletildi.
+    - `log.py` dosyasında `WARNING`, `ERROR`, `CRITICAL` gibi yeni log seviyeleri tanımlandı.
+
+### ✅ Sonuç
+Uygulamanın hata yönetimi ve loglama altyapısı güçlendirildi, merkezi Cloud Logging entegrasyonu sağlandı. 
+
+## v0.2.8-anonymization-service-update (2025-07-14 08:23:00)
+
+### 🛠️ Teknik İyileştirmeler ve Hata Düzeltmeleri
+- **Anonimleştirme Servisi:**
+    - `aw-server/aw_server/data_anonymization/anonymizer.py` dosyası, anonimleştirilecek alanları ve yöntemlerini (hash veya mask) yapılandırılabilir hale getirecek şekilde güncellendi.
+    - `FirestoreEventDB` sınıfı, `Anonymizer` sınıfının güncellenmiş mantığını kullanacak şekilde doğrulandı.
+
+### ✅ Sonuç
+Veri anonimleştirme servisi daha esnek ve yapılandırılabilir hale getirildi, kullanıcı tercihlerine göre hassas verilerin anonimleştirilmesi sağlandı. 

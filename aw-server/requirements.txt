@@ -9,4 +9,5 @@ langchain-google-genai
 praisonaiagents
 requests
 iso8601
-Flask-Cors 
+Flask-Cors
+google-cloud-logging 
