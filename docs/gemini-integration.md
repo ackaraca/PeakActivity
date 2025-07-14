@@ -1,6 +1,6 @@
-# Gemini Code Assist Integration
+# Gemini CLI Action Integration
 
-Bu proje GitHub Marketplace'deki **Gemini Code Assist** action'ını kullanarak otomatik kod incelemesi yapmaktadır.
+Bu proje **PraisonAI** projesindeki Gemini CLI action'ını kullanarak otomatik kod incelemesi yapmaktadır.
 
 ## Özellikler
 
@@ -33,10 +33,24 @@ Bu proje GitHub Marketplace'deki **Gemini Code Assist** action'ını kullanarak 
 - 📖 **Dokümantasyon**: Comments, documentation
 - 🎯 **PeakActivity Specific**: ActivityWatch, Firebase, AI components
 
+## Custom Action Kullanımı
+
+### Action Dosyası
+`./.github/actions/gemini/action.yml` - PraisonAI projesinden adapte edildi
+
+### Action Parametreleri
+- `GEMINI_API_KEY`: Gemini API anahtarı (gerekli)
+- `prompt`: Gemini için özel prompt (opsiyonel)
+- `OTLP_GCP_WIF_PROVIDER`: GCP authentication (opsiyonel)
+- `OTLP_GOOGLE_CLOUD_PROJECT`: Google Cloud project (opsiyonel)
+- `version`: Gemini CLI versiyonu (varsayılan: 'latest')
+
 ## Kurulum
 
 Gerekli secrets:
 - `GEMINI_API_KEY`: Gemini API anahtarı
 - `GITHUB_TOKEN`: Otomatik sağlanır
 
-Action URL: https://github.com/marketplace/gemini-code-assist
+## Kaynak
+
+Action Source: [PraisonAI Gemini Action](https://github.com/MervinPraison/PraisonAI/blob/main/.github/actions/gemini/action.yml)

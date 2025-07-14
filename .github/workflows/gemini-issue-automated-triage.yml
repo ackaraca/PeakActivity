@@ -29,16 +29,12 @@ jobs:
           token: ${{ steps.generate_token.outputs.token }}
 
       - name: Run Gemini Issue Triage
-        uses: google-gemini/gemini-code-assist@v1
-        env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          REPOSITORY: ${{ github.repository }}
+        uses: ./.github/actions/gemini
         with:
-          api-key: ${{ secrets.GEMINI_API_KEY }}
-          model: gemini-1.5-pro-latest
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OTLP_GCP_WIF_PROVIDER: ${{ secrets.OTLP_GCP_WIF_PROVIDER }}
+          OTLP_GOOGLE_CLOUD_PROJECT: ${{ secrets.OTLP_GOOGLE_CLOUD_PROJECT }}
+          version: 'latest'
           prompt: |
             Bu GitHub issue'unu analiz edin ve uygun label'ları atayın.
 
