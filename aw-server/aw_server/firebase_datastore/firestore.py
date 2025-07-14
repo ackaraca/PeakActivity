@@ -124,6 +124,42 @@ class FirestoreEventDB(EventDB):
                 return result[0].value
         return 0
 
+    def get_total_duration(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> float:
+        query = self.collection_ref
+        if start:
+            query = query.where(u'timestamp', u'>=', start)
+        if end:
+            query = query.where(u'timestamp', u'<', end)
+
+        from google.cloud.firestore_v1 import aggregation
+
+        aggregate_query = aggregation.AggregationQuery(query)
+        aggregate_query.sum(u'duration', alias="total_duration")
+
+        results = aggregate_query.get()
+        for result in results:
+            if result[0].alias == "total_duration":
+                return result[0].value if result[0].value is not None else 0.0
+        return 0.0
+
+    def get_average_duration(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> float:
+        query = self.collection_ref
+        if start:
+            query = query.where(u'timestamp', u'>=', start)
+        if end:
+            query = query.where(u'timestamp', u'<', end)
+
+        from google.cloud.firestore_v1 import aggregation
+
+        aggregate_query = aggregation.AggregationQuery(query)
+        aggregate_query.avg(u'duration', alias="average_duration")
+
+        results = aggregate_query.get()
+        for result in results:
+            if result[0].alias == "average_duration":
+                return result[0].value if result[0].value is not None else 0.0
+        return 0.0
+
 class FirestoreStorage(Storage):
     def __init__(self, user_id: str, testing: bool = False, anonymize_data: bool = False):
         super().__init__(testing)
