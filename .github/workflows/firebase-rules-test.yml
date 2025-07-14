@@ -1,3 +1,5 @@
+# NOTE: To use this workflow, you must add a GitHub secret named FIRESTORE_PROJECT_ID
+#       with the Firebase Project ID for your test project.
 name: Firebase Security Rules Test
 
 on:
@@ -21,19 +23,16 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Install Firebase CLI and dependencies
+    - name: Install Firebase CLI and functions dependencies
       run: |
         npm install -g firebase-tools
-        npm install --prefix functions @firebase/rules-unit-testing firebase-admin firebase-functions firebase
-
-    - name: Install project dependencies
-      run: npm install --prefix functions
+        npm install --prefix functions
 
     - name: Start Firebase Emulators and Run Tests
       run: |
-        firebase emulators:exec --project peakactivity-test --only firestore "npm --prefix functions test functions/test/security/firestore.test.ts"
+        firebase emulators:exec --project ${{ secrets.FIREBASE_PROJECT_ID }} --only firestore "npm --prefix functions test functions/test/security/firestore.test.ts"
       env:
-        FIRESTORE_EMULATOR_HOST: localhost:8080 
+        FIRESTORE_EMULATOR_HOST: localhost:8080
 
   security_scan_python:
     runs-on: ubuntu-latest
@@ -50,16 +49,30 @@ jobs:
       run: pip install poetry
 
     - name: Install Python dependencies
-      run: poetry install --no-root
+      run: poetry install
       working-directory: aw-server
 
     - name: Run Bandit Security Scan
       run: poetry run bandit -r aw_server/ -ll -f json -o bandit-report.json
       working-directory: aw-server
+    - name: Upload Bandit Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: bandit-report
+        path: aw-server/bandit-report.json
+
+    - name: Generate requirements.txt for Safety
+      run: poetry export -f requirements.txt --output requirements.txt --without-hashes
+      working-directory: aw-server
 
     - name: Run Safety Dependency Scan
       run: poetry run safety check -r requirements.txt --full-report -o safety-report.json
       working-directory: aw-server
+    - name: Upload Safety Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: safety-report
+        path: aw-server/safety-report.json
 
   security_scan_nodejs:
     runs-on: ubuntu-latest
@@ -78,4 +91,9 @@ jobs:
 
     - name: Run npm audit
       run: npm audit --json > npm-audit-report.json || true
-      working-directory: aw-server/aw-webui 
+      working-directory: aw-server/aw-webui
+    - name: Upload npm Audit Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: npm-audit-report
+        path: aw-server/aw-webui/npm-audit-report.json 

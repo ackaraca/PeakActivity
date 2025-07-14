@@ -1,5 +1,43 @@
 # PeakActivity - Versiyon Geçmişi
 
+## v0.4.0-encryption-security-implementation (2024-12-28)
+
+### 🔐 Kapsamlı Şifreleme ve Güvenlik Implementasyonu
+
+**Yeni branch:** `dev03-0.4.0` oluşturuldu ve kapsamlı güvenlik altyapısı için plan hazırlandı.
+
+#### 📋 Planlanan Özellikler
+- **Şifreleme Altyapısı:** AES-256-GCM, Argon2id key derivation
+- **Anahtar Yönetimi:** Master password, OS keychain entegrasyonu
+- **Veri Sınıflandırması:** 3 seviyeli veri gönderim (RAW, Encrypted+AI, Encrypted)
+- **Web Client-Side Şifreleme:** Web Crypto API, CryptoJS fallback
+- **Kurtarma Sistemi:** Güvenlik soruları, 2FA, backup kodları
+- **Dış Servis Şifreleme:** Trello/Jira/Google Calendar credentials
+
+#### 📚 Dokümantasyon Güncellemeleri
+- **PRIVACY.md:** Kapsamlı gizlilik politikası oluşturuldu
+- **ADR-002:** Encryption Architecture mimari karar belgesi
+- **Project Standards:** Yeni güvenlik kuralları eklendi (Sections 17-19)
+- **TODO List:** 110 adımlı detaylı implementasyon planı
+
+#### 🎯 Güvenlik Standartları
+- GDPR/CCPA uyumluluğu
+- OWASP Top 10 compliance
+- Zero-knowledge architecture
+- End-to-end encryption
+- Security-by-design principles
+
+#### 📊 İstatistikler
+- **Toplam Görev:** 110 adım
+- **Ana Kategoriler:** 12 farklı alan
+- **Tahmini Süre:** 3-4 ay (tam implementasyon)
+- **Güvenlik Seviyesi:** Enterprise-grade
+
+### ✅ Sonuç
+PeakActivity artık modern güvenlik gereksinimlerini karşılayacak kapsamlı bir şifreleme ve gizlilik altyapısına sahip olacak. Bu güncelleme ile kullanıcı verileri hem yerel hem de bulut ortamında maksimum güvenlik ile korunacaktır.
+
+---
+
 ## v0.13.19-full-functional-roadmap (2025-07-13 13:26:25)
 
 ### 🚀 Yeni Özellikler ve İyileştirmeler
@@ -272,9 +310,9 @@ Projenin CI/CD pipeline'ı, hem Python hem de Node.js kod tabanları için güve
 
 ### 🛠️ Teknik İyileştirmeler ve Hata Düzeltmeleri
 - **Firebase API Anahtarı Güvenliği:**
-    - `aw-server/aw-webui/src/firebase.ts` dosyasındaki sabit kodlanmış Firebase API anahtarı (`AIzaSyBSYTpoUJgrFC-ve3j-wL8bSgcDYAr67bA`) kaldırıldı.
+    - `aw-server/aw-webui/src/firebase.ts` dosyasındaki sabit kodlanmış Firebase API anahtarı kaldırıldı.
     - Anahtar, `import.meta.env.VITE_FIREBASE_API_KEY` ortam değişkeni aracılığıyla yüklenecek şekilde değiştirildi.
-    - Kullanıcının API anahtarını (`AIzaSyDNj9t1v2lys1ct1lIjbEYrFqTBH1RMc30`) ortam değişkeni olarak nasıl ayarlayacağına dair talimatlar sağlandı (PowerShell ve Bash/Zsh örnekleriyle).
+    - Kullanıcının API anahtarını ortam değişkeni olarak nasıl ayarlayacağına dair talimatlar sağlandı (PowerShell ve Bash/Zsh örnekleriyle).
 
 ### ✅ Sonuç
 Firebase API anahtarı başarıyla kaynak kodundan çıkarıldı ve ortam değişkenleri aracılığıyla yönetilecek şekilde yapılandırıldı, bu da uygulamanın güvenliğini artırdı. 
