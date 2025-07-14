@@ -1,0 +1,143 @@
+name: Gemini PR Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ main, develop, dev01 ]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  gemini-pr-review:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR changed files
+        id: pr-changes
+        run: |
+          # Get the list of files changed in this PR
+          gh pr diff ${{ github.event.pull_request.number }} --name-only > changed_files.txt
+          CHANGED_FILES=$(cat changed_files.txt | tr '\n' ' ')
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get PR diff
+        id: pr-diff
+        run: |
+          gh pr diff ${{ github.event.pull_request.number }} > pr_diff.txt
+          echo "diff_content<<EOF" >> $GITHUB_OUTPUT
+          cat pr_diff.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Gemini PR Code Analysis
+        uses: ./.github/actions/gemini
+        with:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OTLP_GCP_WIF_PROVIDER: ${{ secrets.OTLP_GCP_WIF_PROVIDER }}
+          OTLP_GOOGLE_CLOUD_PROJECT: ${{ secrets.OTLP_GOOGLE_CLOUD_PROJECT }}
+          version: 'latest'
+          prompt: |
+            Bu Pull Request'i detaylı olarak inceleyip code review yapın:
+            
+            **PR Bilgileri:**
+            - PR Numarası: #${{ github.event.pull_request.number }}
+            - Başlık: ${{ github.event.pull_request.title }}
+            - Açıklama: ${{ github.event.pull_request.body }}
+            - Yazar: ${{ github.event.pull_request.user.login }}
+            
+            **Değişen Dosyalar:**
+            ${{ steps.pr-changes.outputs.files }}
+            
+            **Diff İçeriği:**
+            ```diff
+            ${{ steps.pr-diff.outputs.diff_content }}
+            ```
+            
+            **İnceleme Alanları:**
+            1. **Kod Kalitesi & Standards**: Clean code, naming conventions, structure
+            2. **Functionality**: Logic doğruluğu, edge case handling
+            3. **Security**: Input validation, authentication, authorization
+            4. **Performance**: Efficiency, scalability, resource usage
+            5. **Testing**: Test coverage, test quality
+            6. **Documentation**: Code comments, README updates
+            7. **Breaking Changes**: Backward compatibility
+            8. **PeakActivity Specifics**: ActivityWatch integration, Firebase usage, AI components
+            
+            **Review Format:**
+            ```markdown
+            ## 🔍 Pull Request İncelemesi - PR #${{ github.event.pull_request.number }}
+            
+            ### 📋 Özet
+            [PR'ın genel amacı ve kapsamı]
+            
+            ### ✅ Pozitif Yönler
+            - [İyi implement edilmiş özellikler]
+            - [Kod kalitesi açısından güçlü yönler]
+            
+            ### ⚠️ İyileştirme Gereken Alanlar
+            - **High Priority**: [Kritik sorunlar]
+            - **Medium Priority**: [Orta öncelikli iyileştirmeler]
+            - **Low Priority**: [Nice-to-have iyileştirmeler]
+            
+            ### 🔒 Güvenlik İncelemesi
+            - [Güvenlik açısından dikkat edilmesi gerekenler]
+            
+            ### 🚀 Performans Değerlendirmesi
+            - [Performans etkileri ve önerileri]
+            
+            ### 🧪 Test Önerileri
+            - [Eklenmesi gereken testler]
+            
+            ### 📖 Dokümantasyon
+            - [Güncellenmesi gereken dokümantasyon]
+            
+            ### 🎯 Action Items
+            - [ ] [Merge öncesi yapılması gerekenler]
+            
+            ### 🏆 Genel Değerlendirme
+            **Merge Recommendation**: ✅ Approve / ⚠️ Request Changes / ❌ Reject
+            
+            **Confidence Score**: X/10
+            ```
+            
+            Lütfen detaylı ve yapıcı feedback verin. Türkçe yanıt verin.
+
+      - name: Post PR Review Comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            // Read Gemini analysis result
+            const analysisResult = process.env.GEMINI_ANALYSIS || 'Gemini PR analizi tamamlandı.';
+            
+            // Post review comment
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              body: analysisResult,
+              event: 'COMMENT'
+            });
+            
+            // Also add a regular comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: `## 🤖 Gemini AI Code Review Tamamlandı\n\n${analysisResult}\n\n---\n*Bu review otomatik olarak Gemini AI tarafından gerçekleştirilmiştir.*`
+            });

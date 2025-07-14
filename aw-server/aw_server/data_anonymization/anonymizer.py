@@ -2,25 +2,23 @@ import hashlib
 
 class Anonymizer:
     def __init__(self, config=None):
-        # Anonimleştirme yapılandırması (örneğin, hangi alanların anonimleştirileceği)
-        self.config = config if config is not None else {}
+        # Anonimleştirme yapılandırması (örneğin, hangi alanların hangi yöntemle anonimleştirileceği)
+        # Örnek config: {'title': 'hash', 'app': 'mask', 'url': 'hash'}
+        self.config = config if config is not None else {
+            'title': 'hash',
+            'app': 'hash'
+        }
 
     def anonymize_event(self, event_data):
         anonymized_data = event_data.copy()
         
-        # Varsayılan olarak başlık ve uygulama adını hash'le
-        if 'title' in anonymized_data:
-            anonymized_data['title'] = self._hash_data(anonymized_data['title'])
-        if 'app' in anonymized_data:
-            anonymized_data['app'] = self._hash_data(anonymized_data['app'])
-
-        # Gelecekteki genişletmeler için: yapılandırmaya göre diğer alanları anonimleştir
-        # for field, method in self.config.items():
-        #     if field in anonymized_data:
-        #         if method == 'hash':
-        #             anonymized_data[field] = self._hash_data(anonymized_data[field])
-        #         elif method == 'mask':
-        #             anonymized_data[field] = self._mask_data(anonymized_data[field])
+        for field, method in self.config.items():
+            if field in anonymized_data:
+                if method == 'hash':
+                    anonymized_data[field] = self._hash_data(anonymized_data[field])
+                elif method == 'mask':
+                    anonymized_data[field] = self._mask_data(anonymized_data[field])
+                # Gelecekteki diğer anonimleştirme yöntemleri buraya eklenebilir
         
         return anonymized_data
 
@@ -29,6 +27,8 @@ class Anonymizer:
             return hashlib.sha256(data.encode()).hexdigest()
         return data
 
-    # Gelecekteki maskeleme yöntemleri için yer tutucu
-    # def _mask_data(self, data):
-    #     return "[MASKED]" 
+    def _mask_data(self, data):
+        # Basit maskeleme: tüm veriyi [MASKED] ile değiştir
+        if isinstance(data, str):
+            return "[MASKED]"
+        return data 

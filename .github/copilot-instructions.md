@@ -10,11 +10,11 @@ This project integrates **ActivityWatch** (time tracking) with **PraisonAI Agent
 - **Integration**: PraisonAI agents bridge local data with cloud AI services
 
 ### Key Directories
-- `PeakActivityMain/`: ActivityWatch fork with Firebase integration
-- `PeakActivityAgent/`: PraisonAI agents framework for AI automation
+- `PeakActivity`: ActivityWatch fork with Firebase integration
 - `functions/src/`: Firebase Cloud Functions (TypeScript)
 - `aw-server/`: Modified ActivityWatch server with Firestore support
 - `.cursor/rules/`: Project-specific development guidelines
+- `.github/`: Project-wide configuration, workflows, and development helper files
 
 ## Core Components
 

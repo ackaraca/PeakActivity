@@ -267,3 +267,84 @@ PeakActivityMain projesinin sadece içeriği artık belirtilen GitHub deposunda 
 
 ### ✅ Sonuç
 Projenin CI/CD pipeline'ı, hem Python hem de Node.js kod tabanları için güvenlik taramalarıyla güçlendirildi. Bu, potansiyel güvenlik açıklarını erken aşamada tespit etmeye yardımcı olacaktır. 
+
+## v0.2.4-firebase-api-key-security (2025-07-14 08:06:01)
+
+### 🛠️ Teknik İyileştirmeler ve Hata Düzeltmeleri
+- **Firebase API Anahtarı Güvenliği:**
+    - `aw-server/aw-webui/src/firebase.ts` dosyasındaki sabit kodlanmış Firebase API anahtarı (`AIzaSyBSYTpoUJgrFC-ve3j-wL8bSgcDYAr67bA`) kaldırıldı.
+    - Anahtar, `import.meta.env.VITE_FIREBASE_API_KEY` ortam değişkeni aracılığıyla yüklenecek şekilde değiştirildi.
+    - Kullanıcının API anahtarını (`AIzaSyDNj9t1v2lys1ct1lIjbEYrFqTBH1RMc30`) ortam değişkeni olarak nasıl ayarlayacağına dair talimatlar sağlandı (PowerShell ve Bash/Zsh örnekleriyle).
+
+### ✅ Sonuç
+Firebase API anahtarı başarıyla kaynak kodundan çıkarıldı ve ortam değişkenleri aracılığıyla yönetilecek şekilde yapılandırıldı, bu da uygulamanın güvenliğini artırdı. 
+
+## v0.2.5-typescript-env-fix (2025-07-14 08:08:53)
+
+### 🛠️ Teknik İyileştirmeler ve Hata Düzeltmeleri
+- **TypeScript Ortam Değişkeni Tanıma Hatası Düzeltmesi:**
+    - `aw-server/aw-webui/src/globals.d.ts` dosyasına `ImportMetaEnv` arayüzü ve `ImportMeta` üzerinde `env` özelliği tanımlaması eklendi.
+    - Bu sayede `firebase.ts` dosyasındaki `import.meta.env.VITE_FIREBASE_API_KEY` kullanımından kaynaklanan `Property 'env' does not exist on type 'ImportMeta'.` TypeScript hatası giderildi.
+
+### ✅ Sonuç
+Uygulamanın derleme sürecindeki TypeScript hatası başarıyla düzeltildi ve Firebase API anahtarının ortam değişkeni aracılığıyla güvenli bir şekilde yüklenmesi sağlandı. 
+
+## v0.2.6-next-steps-update (2025-07-14 08:18:53)
+
+### 🛠️ Teknik İyileştirmeler ve Hata Düzeltmeleri
+- **next_steps.md Güncellemesi:**
+    - `chatcontext/next_steps.md` dosyasındaki aşağıdaki görevler tamamlandı olarak işaretlendi:
+        - PraisonAI Agent Entegrasyonu altında "API Anahtar Akışı"
+        - Güvenlik ve Altyapı altında "Firestore Güvenlik Kuralları"
+        - Güvenlik ve Altyapı altında "Gizli Anahtar Yönetimi"
+        - DevOps altında "CI/CD Pipeline Geliştirmesi"
+
+### ✅ Sonuç
+Projenin bir sonraki adımlarını içeren `next_steps.md` dosyası, tamamlanan görevlerin yansıtılmasıyla güncellendi. 
+
+## v0.2.7-logging-integration (2025-07-14 08:22:18)
+
+### 🛠️ Teknik İyileştirmeler ve Hata Düzeltmeleri
+- **Hata Yönetimi & Loglama:**
+    - `aw-server/requirements.txt` dosyasına `google-cloud-logging` bağımlılığı eklendi.
+    - `aw-server/aw_server/log.py` dosyası, Python'ın standart `logging` modülünü kullanarak Firebase/Cloud Logging entegrasyonu yapacak şekilde güncellendi.
+    - `FlaskLogHandler` sınıfı, log mesajlarını hem yerel Flask logger'ına hem de Cloud Logging'e gönderecek şekilde genişletildi.
+    - `log.py` dosyasında `WARNING`, `ERROR`, `CRITICAL` gibi yeni log seviyeleri tanımlandı.
+
+### ✅ Sonuç
+Uygulamanın hata yönetimi ve loglama altyapısı güçlendirildi, merkezi Cloud Logging entegrasyonu sağlandı. 
+
+## v0.2.8-anonymization-service-update (2025-07-14 08:23:00)
+
+### 🛠️ Teknik İyileştirmeler ve Hata Düzeltmeleri
+- **Anonimleştirme Servisi:**
+    - `aw-server/aw_server/data_anonymization/anonymizer.py` dosyası, anonimleştirilecek alanları ve yöntemlerini (hash veya mask) yapılandırılabilir hale getirecek şekilde güncellendi.
+    - `FirestoreEventDB` sınıfı, `Anonymizer` sınıfının güncellenmiş mantığını kullanacak şekilde doğrulandı.
+
+### ✅ Sonuç
+Veri anonimleştirme servisi daha esnek ve yapılandırılabilir hale getirildi, kullanıcı tercihlerine göre hassas verilerin anonimleştirilmesi sağlandı. 
+
+## v0.2.4-detailed-project-roadmap (2025-07-14 08:35:15)
+
+### 🚀 Yeni Özellikler ve İyileştirmeler
+- **Kapsamlı Proje Yol Haritası ve Eksikliklerin Belirlenmesi:**
+    - `chatcontext/dev.md` ve `chatcontext/integration.md` dosyaları detaylıca incelendi.
+    - `.cursor/rules/` dizinindeki tüm `md` ve `mdc` uzantılı kural dosyaları (örneğin `beastmode.mdc`, `Project-Standards-and-Guidelines.mdc`, `firebase-integration-documentation.md`, `firestore-data-modeling-comprehensive.md`, `ai-feature-documentation.md`, `firebase-api-documentation.md`, `api-response-standards.md`, `core-firebase-data-modeling.md`) titizlikle gözden geçirildi.
+    - Projenin mevcut durumu, standartları ve entegrasyon detayları hakkında kapsamlı bilgi toplandı.
+    - Projenin piyasaya sürülme seviyesine ulaşması için eksik veya geliştirilebilecek özellikler, performans optimizasyonları, güvenlik iyileştirmeleri, belgeleme ihtiyaçları ve genel en iyi uygulamalar belirlendi.
+    - Bu bilgiler ışığında, projenin gelecekteki gelişimine rehberlik edecek detaylı ve uzun bir `todo.md` dosyası oluşturuldu. Bu dosya, Firebase güvenlik kuralları, üretim ortamı kimlik bilgileri yönetimi, veri anonimleştirme mekanizması, Firestore sorgu performansı optimizasyonu, hata yönetimi ve loglama, belgeleme ve kod yorumları, kullanıcı arayüzü entegrasyonu, genel kod iyileştirmeleri, Firebase veri modellemesi incelemesi, API yanıt standartları, yeni özelliklerin dokümantasyonu, güvenlik denetimi, performans testleri, kullanıcı geri bildirimi entegrasyonu, izleme ve gözlemlenebilirlik ve özellik bayrağı kullanımı gibi geniş bir yelpazeyi kapsayan görevleri içeriyor.
+
+### ✅ Sonuç
+Projenin detaylı bir analizi yapıldı ve gelecekteki geliştirmelere yönelik kapsamlı bir yol haritası (`todo.md`) başarıyla oluşturuldu. Bu yol haritası, projenin istikrarlı, güvenli ve performanslı bir şekilde piyasaya sürülmesi için gerekli tüm adımları içermektedir. 
+
+## v0.2.5-github-workflows-update (2025-07-14 08:50:11)
+
+### 🚀 Yeni Özellikler ve İyileştirmeler
+- **GitHub İş Akışları Optimizasyonu ve Genişletilmesi:**
+    - `.github/workflows/` dizinindeki mevcut iş akışları (`firebase-rules-test.yml`, `release.yml`, `test-comprehensive.yml`, `test-core.yml`, `test-extended.yml`, `test-frameworks.yml`, `test-real.yml`, `unittest.yml`, `auto-pr-comment.yml`, `build-image.yml`, `coverage.yml`, `docker-publish.yml`, `gemini-issue-automated-triage.yml`, `gemini-issue-review.yml`, `python-package.yml`, `python-publish.yml`, `auto-issue-comment.yml`) `PeakActivityMain` projesine özel olarak uyarlandı, gereksiz PraisonAI bağımlılıkları ve adımları kaldırıldı, test komutları ve ortam değişkenleri güncellendi.
+    - **Yeni İş Akışları Eklendi:**
+        - `code-quality.yml`: Python (Black, Flake8) ve Node.js/Vue.js (ESLint) için otomatik kod kalitesi ve linting kontrolleri eklendi.
+        - `dependency-scan.yml`: Python (pip-audit) ve Node.js (npm audit) bağımlılıklarında güvenlik açığı taramalarını otomatikleştiren bir iş akışı eklendi.
+
+### ✅ Sonuç
+Projenin CI/CD süreçleri, mevcut iş akışlarının `PeakActivityMain` projesine uyarlanması ve kod kalitesi ile bağımlılık güvenliği taramalarını içeren yeni iş akışlarının eklenmesiyle önemli ölçüde geliştirildi. Bu sayede, kod tabanının kalitesi, güvenliği ve sürdürülebilirliği artırıldı. 

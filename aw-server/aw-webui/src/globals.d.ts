@@ -6,6 +6,15 @@ declare const PRODUCTION: boolean;
 declare const AW_SERVER_URL: string;
 declare const COMMIT_HASH: string;
 
+interface ImportMetaEnv {
+  readonly VITE_FIREBASE_API_KEY: string;
+  // Diğer ortam değişkenlerini buraya ekleyebilirsiniz
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 declare module 'aw-client' {
   export class AWClient {
     constructor(clientName: string, options?: any);

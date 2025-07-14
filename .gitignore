@@ -34,11 +34,13 @@ dmyp.json
 .idea/
 
 # ========================= PeakActivity Specific =========================
-
-# Cursor IDE Rules - GitHub'da paylaşılmasın
-.cursor/
-.cursor/rules/
+# PeakActivity Propetary Files
+.github/instructions
 chatcontext/
+.cursor/rules/beastmode.mdc
+.cursor/rules/Project-Standards-and-Guidelines.mdc
+.cursor/rules/ai-feature-documentation.md
+.cursor/rules/firestore-data-modeling-comprehensive.md
 
 # Environment files
 .env
