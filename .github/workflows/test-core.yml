@@ -29,6 +29,10 @@ jobs:
         poetry config virtualenvs.in-project true
         poetry config virtualenvs.create true
 
+    - name: Update lock file
+      run: poetry lock --no-update
+      working-directory: aw-server
+
     - name: Install Python Dependencies (aw-server)
       run: poetry install
       working-directory: aw-server

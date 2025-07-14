@@ -29,7 +29,7 @@ jobs:
           token: ${{ steps.generate_token.outputs.token }}
 
       - name: Run Gemini Issue Triage
-        uses: google-gemini/gemini-cli-action@main # Use latest stable version or specific tag
+        uses: ./.github/actions/gemini
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -37,7 +37,6 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPOSITORY: ${{ github.repository }}
         with:
-          version: 0.1.8-rc.0 # Consider updating to a newer stable version if available
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OTLP_GCP_WIF_PROVIDER: ${{ secrets.OTLP_GCP_WIF_PROVIDER }}
           OTLP_GOOGLE_CLOUD_PROJECT: ${{ secrets.OTLP_GOOGLE_CLOUD_PROJECT }}

@@ -3,10 +3,12 @@ name: Firebase Security Rules Test
 on:
   push:
     branches:
-      - master
+      - main
+      - dev01
   pull_request:
     branches:
-      - master
+      - main
+      - dev01
 
 jobs:
   run_rules_tests:
@@ -31,7 +33,7 @@ jobs:
 
     - name: Start Firebase Emulators and Run Tests
       run: |
-        firebase emulators:exec --project peakactivity-test --only firestore "npm --prefix functions test functions/test/security/firestore.test.ts"
+        firebase emulators:exec --project peakactivity-test --only firestore "npm --prefix functions run test:security"
       env:
         FIRESTORE_EMULATOR_HOST: localhost:8080 
 
@@ -48,6 +50,10 @@ jobs:
 
     - name: Install Poetry
       run: pip install poetry
+
+    - name: Update lock file
+      run: poetry lock --no-update
+      working-directory: aw-server
 
     - name: Install Python dependencies
       run: poetry install --no-root
