@@ -267,3 +267,14 @@ PeakActivityMain projesinin sadece içeriği artık belirtilen GitHub deposunda 
 
 ### ✅ Sonuç
 Projenin CI/CD pipeline'ı, hem Python hem de Node.js kod tabanları için güvenlik taramalarıyla güçlendirildi. Bu, potansiyel güvenlik açıklarını erken aşamada tespit etmeye yardımcı olacaktır. 
+
+## v0.2.4-firebase-api-key-security (2025-07-14 08:06:01)
+
+### 🛠️ Teknik İyileştirmeler ve Hata Düzeltmeleri
+- **Firebase API Anahtarı Güvenliği:**
+    - `aw-server/aw-webui/src/firebase.ts` dosyasındaki sabit kodlanmış Firebase API anahtarı (`AIzaSyBSYTpoUJgrFC-ve3j-wL8bSgcDYAr67bA`) kaldırıldı.
+    - Anahtar, `import.meta.env.VITE_FIREBASE_API_KEY` ortam değişkeni aracılığıyla yüklenecek şekilde değiştirildi.
+    - Kullanıcının API anahtarını (`AIzaSyDNj9t1v2lys1ct1lIjbEYrFqTBH1RMc30`) ortam değişkeni olarak nasıl ayarlayacağına dair talimatlar sağlandı (PowerShell ve Bash/Zsh örnekleriyle).
+
+### ✅ Sonuç
+Firebase API anahtarı başarıyla kaynak kodundan çıkarıldı ve ortam değişkenleri aracılığıyla yönetilecek şekilde yapılandırıldı, bu da uygulamanın güvenliğini artırdı. 

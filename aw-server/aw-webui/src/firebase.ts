@@ -6,7 +6,7 @@ import { getFirestore } from "firebase/firestore"; // Firestore'u içe aktar
 // Firebase yapılandırma bilgileriniz buraya gelecek
 // Bu bilgiler Firebase Console'dan alınabilir (Proje Ayarları -> Genel -> Uygulamalarınız)
 const firebaseConfig = {
-  apiKey: "AIzaSyBSYTpoUJgrFC-ve3j-wL8bSgcDYAr67bA",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "peakactivity-ack.firebaseapp.com",
   projectId: "peakactivity-ack",
   storageBucket: "peakactivity-ack.firebasestorage.app",
