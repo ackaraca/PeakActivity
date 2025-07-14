@@ -29,7 +29,7 @@ jobs:
           token: ${{ steps.generate_token.outputs.token }}
 
       - name: Run Gemini Issue Triage
-        uses: ./.github/actions/gemini
+        uses: google-gemini/gemini-code-assist@v1
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -37,9 +37,31 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPOSITORY: ${{ github.repository }}
         with:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          OTLP_GCP_WIF_PROVIDER: ${{ secrets.OTLP_GCP_WIF_PROVIDER }}
-          OTLP_GOOGLE_CLOUD_PROJECT: ${{ secrets.OTLP_GOOGLE_CLOUD_PROJECT }}
+          api-key: ${{ secrets.GEMINI_API_KEY }}
+          model: gemini-1.5-pro-latest
+          prompt: |
+            Bu GitHub issue'unu analiz edin ve uygun label'ları atayın.
+
+            **Issue Bilgileri:**
+            - Başlık: ${{ github.event.issue.title }}
+            - İçerik: ${{ github.event.issue.body }}
+            - Issue #: ${{ github.event.issue.number }}
+            - Repository: ${{ github.repository }}
+
+            **Görevler:**
+            1. Mevcut label'ları listele: `gh label list --limit 100`
+            2. Issue içeriğini analiz et
+            3. En uygun label'ları seç (area/*, type/*, priority/* odaklı)
+            4. Label'ları uygula: `gh issue edit ${{ github.event.issue.number }} --add-label "label1,label2"`
+
+            **Kurallar:**
+            - Sadece mevcut label'ları kullan
+            - Issue içeriğine yorum ekleme
+            - Sadece mevcut issue'yu triage et
+            - Tüm uygun area/*, type/*, priority/* label'larını ata
+            - Eğer uygun label bulunamazsa, hiç label atama
+
+            Lütfen işlemi gerçekleştirin.
           settings_json: |
             {
               "coreTools": [

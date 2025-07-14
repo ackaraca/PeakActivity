@@ -73,13 +73,18 @@ jobs:
           echo "ADDITIONAL_INSTRUCTIONS=$ADDITIONAL_INSTRUCTIONS" >> $GITHUB_OUTPUT
 
       - name: Run Gemini CLI
-        uses: ./.github/actions/gemini # Ensure this path is correct for your project's custom action
+        uses: google-gemini/gemini-code-assist@v1
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           ISSUE_NUMBER: ${{ steps.issue_data.outputs.ISSUE_NUMBER }}
           ADDITIONAL_INSTRUCTIONS: ${{ steps.issue_data.outputs.ADDITIONAL_INSTRUCTIONS }}
           REPOSITORY: ${{ github.repository }}
         with:
+          api-key: ${{ secrets.GEMINI_API_KEY }}
+          model: gemini-1.5-pro-latest
+          REPOSITORY: ${{ github.repository }}
+        with:
+          version: 0.1.8-rc.0
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OTLP_GCP_WIF_PROVIDER: ${{ secrets.OTLP_GCP_WIF_PROVIDER }}
           OTLP_GOOGLE_CLOUD_PROJECT: ${{ secrets.OTLP_GOOGLE_CLOUD_PROJECT }}

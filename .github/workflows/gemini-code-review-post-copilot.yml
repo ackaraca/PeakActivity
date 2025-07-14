@@ -1,0 +1,102 @@
+name: Gemini Code Review After Copilot
+
+on:
+  push:
+    branches: [ dev01, main, develop ]
+  workflow_run:
+    workflows: ["*"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  gemini-code-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }}..${{ github.event.after }})
+          else
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          fi
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Gemini Code Analysis
+        if: steps.changed-files.outputs.files != ''
+        uses: google-gemini/gemini-code-assist@v1
+        with:
+          api-key: ${{ secrets.GEMINI_API_KEY }}
+          model: gemini-1.5-pro-latest
+          files: ${{ steps.changed-files.outputs.files }}
+          prompt: |
+            Lütfen aşağıdaki kod değişikliklerini inceleyin ve analiz edin:
+            
+            **İnceleme Kriterleri:**
+            1. **Kod Kalitesi**: Clean code prensipleri, okunabilirlik, maintainability
+            2. **Güvenlik**: Potansiyel güvenlik açıkları, input validation
+            3. **Performans**: Algoritma efficiency, memory usage, bottleneck'ler
+            4. **Best Practices**: Framework/dil spesifik best practice'ler
+            5. **Test Coverage**: Unit test ihtiyaçları ve eksiklikleri
+            6. **Documentation**: Code comment'ler ve documentation adequacy
+            
+            **PeakActivity Proje Bağlamı:**
+            - ActivityWatch tabanlı productivity tracking uygulaması
+            - Firebase/Firestore backend
+            - Vue.js frontend
+            - Python aw-server backend
+            - AI-powered insights (TensorFlow.js, Gemini)
+            - Privacy-first yaklaşım
+            
+            **Analiz Formatı:**
+            ```
+            ## 🔍 Kod İnceleme Raporu
+            
+            ### ✅ Pozitif Yönler
+            - [Kod kalitesinde iyi olan noktalar]
+            
+            ### ⚠️ İyileştirme Önerileri
+            - [Potansiyel sorunlar ve çözüm önerileri]
+            
+            ### 🔒 Güvenlik Kontrolleri
+            - [Güvenlik açısından dikkat edilmesi gerekenler]
+            
+            ### 🚀 Performans Önerileri
+            - [Performans optimizasyonu önerileri]
+            
+            ### 📝 Action Items
+            - [ ] [Yapılması gereken somut adımlar]
+            ```
+            
+            Lütfen Türkçe yanıt verin ve konstruktif feedback sağlayın.
+
+      - name: Create Issue Comment (if applicable)
+        if: github.event.issue.number && steps.changed-files.outputs.files != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Get the Gemini analysis result from the previous step
+            const fs = require('fs');
+            const analysisResult = process.env.GEMINI_ANALYSIS || 'Gemini analizi tamamlandı.';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🤖 Gemini Kod İncelemesi Tamamlandı\n\n${analysisResult}\n\n*Bu analiz Copilot kodlaması sonrasında otomatik olarak gerçekleştirilmiştir.*`
+            });
